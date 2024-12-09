@@ -2,7 +2,7 @@
 
 <template>
   <div class="flex flex-col flex-grow items-center justify-center">
-    <vmo-button perfix="ssee">aaaa</vmo-button>
+    <!-- <vmo-button perfix="ssee">aaaa</vmo-button> -->
   </div>
 </template>
 
