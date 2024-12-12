@@ -22,14 +22,13 @@ import * as R from 'ramda' // ramda 引入
  */
 // import.meta.glob('./**/*.pg.ts', { eager: true, import: 'default' })
 
-export function loadPageTemplateByImport(pageTemplates: Record<string, unknown>): Record<string, RouteRecordRaw> {
-  console.log(pageTemplates)
-  const PageNames = R.keys(pageTemplates)
-  const PageRouter: { [key: string]: RouteRecordRaw } = {}
-  PageNames.forEach((pagename: string) => {
-    const content = pageTemplates[pagename]
-    const name = upperFirst(camelCase(pagename.split('/').splice(-2, 1)[0])) //获取相关页面所在文件夹位置,仅取直接父文夹名为模版Key名称;
-    PageRouter[name] = (content as { default?: any }).default || content
+export function loadPageTemplateByImport(templates: Record<string, unknown>): Record<string, RouteRecordRaw> {
+  const pageKeys = R.keys(templates)
+  const pages: { [key: string]: RouteRecordRaw } = {}
+  pageKeys.forEach((pagename: string) => {
+    const content = templates[pagename]
+    const name = upperFirst(camelCase(pagename.split('/').splice(-2, 1)[0])) //获取相关页面所在文件夹位置,仅取直接父文夹名为模版 Key 名称;
+    pages[name] = (content as { default?: any }).default || content
   })
-  return PageRouter
+  return pages
 }

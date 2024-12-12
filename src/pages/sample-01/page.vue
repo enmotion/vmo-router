@@ -1,5 +1,5 @@
 <template>
-  <div class="flex-col bg-red-500 grow-1">sample-01</div>
+  <div class="flex-col bg-gray-900 text-white p-[20px] text-xs flex-grow">sample-01</div>
 </template>
 
 <script lang="ts">
