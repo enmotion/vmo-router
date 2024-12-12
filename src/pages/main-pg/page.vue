@@ -1,13 +1,13 @@
 <template>
   <div class="flex flex-col flex-grow">
-    <div class="flex-col h-[50px] bg-gray-900 border-b border-gray-700"></div>
+    <div class="flex-col h-[50px] bg-gray-900 border-b border-gray-800"></div>
     <div class="flex flex-row flex-grow">
-      <div class="flex flex-col w-[200px] bg-gray-800 text-xs text-white">
-        {{ computedAllRouters }}
+      <div class="flex flex-col w-[200px] bg-gray-900 text-xs border-r border-gray-800 text-white">
+        <!-- {{ computedAllRouters }} -->
         <span
           v-for="(router, index) in computedAllRouters"
-          :key="router.name"
-          class="h-[30px] flex flex-row items-center px-[20px] border-b border-gray-700 text-white">
+          :key="index"
+          class="h-[40px] flex hover:bg-red-500 flex-row items-center px-[20px] border-b border-gray-800 text-white">
           {{ router.name }}
         </span>
       </div>
@@ -27,7 +27,7 @@ export default defineComponent({
   setup(props, context) {
     const router = useRouter()
     const computedAllRouters = computed(() => {
-      return router.getRoutes()
+      return router?.getRoutes?.() ?? []
     })
     return {
       computedAllRouters

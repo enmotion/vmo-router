@@ -1,8 +1,8 @@
 import type { VmoRouteRecordRaw } from '../../../types/index'
 
 const page: VmoRouteRecordRaw<{ avoidTag: boolean }> = {
-  name: 'sample-01',
-  path: '/sample-01',
+  name: 'sample-a',
+  path: 'sample-a',
   props: true,
   meta: {
     keepAlive: false,
