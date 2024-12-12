@@ -7,12 +7,25 @@
         <span
           v-for="(router, index) in computedAllRouters"
           :key="index"
-          class="h-[40px] flex hover:bg-red-500 flex-row items-center px-[20px] border-b border-gray-800 text-white">
+          class="h-[40px] flex hover:bg-red-500 flex-row items-center px-[20px] border-b border-gray-800 text-white cursor-pointer duration-300 transition-all">
           {{ router.name }}
         </span>
       </div>
       <div class="flex flex-col flex-grow">
-        <router-view></router-view>
+        <router-view v-slot="{ Component }">
+          <keep-alive>
+            <component :is="Component"></component>
+          </keep-alive>
+        </router-view>
+      </div>
+      <div class="flex flex-col w-[200px] bg-gray-900 text-xs border-l border-gray-800 text-white">
+        <!-- {{ computedAllRouters }} -->
+        <span
+          v-for="(router, index) in computedAllRouters"
+          :key="index"
+          class="h-[40px] flex hover:bg-red-500 flex-row items-center px-[20px] border-b border-gray-800 text-white cursor-pointer duration-300 transition-all">
+          {{ router.name }}
+        </span>
       </div>
     </div>
   </div>

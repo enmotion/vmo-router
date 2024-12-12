@@ -1,5 +1,7 @@
 <template>
-  <div class="flex-col bg-gray-900 text-white p-[20px] text-xs flex-grow">sample-01</div>
+  <div class="flex-col bg-gray-900 text-white p-[20px] text-xs flex-grow">
+    <input v-model="text" class="bg-[#00000055] p-[10px] w-full rounded border border-gray-800 outline-none" />
+  </div>
 </template>
 
 <script lang="ts">
