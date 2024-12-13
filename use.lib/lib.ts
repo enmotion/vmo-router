@@ -53,11 +53,7 @@ export function allowCreateRouteRecordRawByTemplate<META extends Record<string, 
   ) {
     return true
   } else {
-    throw new Error(`VmoRouter[ERROR]: 创建动态路由失败:
-    \n [routeLocationNamedRaw?.name]:${routeLocationNamedRaw?.name as string}
-    \n [routeLocationNamedRaw?.template]:${routeLocationNamedRaw?.template?.pageKey as string}
-    \n PGS[routeLocationNamedRaw?.template]:${pageTemplates[routeLocationNamedRaw?.template?.pageKey as string]}
-    \n 请补全以上参数`)
+    return false
   }
 }
 
@@ -69,33 +65,53 @@ export function allowCreateRouteRecordRawByTemplate<META extends Record<string, 
  * @param pageTemplates 路由模版持有者
  * @returns {VmoxRouteLocationNamedRaw|void}
  */
-export async function createRouteRecordRawByTemplate<META extends Record<string, any>>(
+export function createRouteRecordRawByTemplate<META extends Record<string, any>>(
   routeLocationNamedRaw: VmoRouteToRaw<META>,
-  autoAddToRouter: boolean = false,
   pageTemplates: { [key: string]: RouteRecordRaw },
   routerInstance?: Router
-): Promise<RouteComponent | void> {
-  const prototype = mergeDeepRight(
-    clone(pageTemplates[routeLocationNamedRaw?.template?.pageKey as string]),
-    routeLocationNamedRaw?.template?.route || {}
-  ) // 合成模版数据
-  if (!isNil(prototype.component)) {
-    prototype.component =
-      prototype.component.constructor == Function
-        ? _routePageComponentLoader.bind({ name: routeLocationNamedRaw.name }, prototype.component)
-        : prototype.component // 指定上下文做好异步加载准备
-    prototype.name = routeLocationNamedRaw.name
-    if (autoAddToRouter && routerInstance) {
-      // 判断添加的路由是否有父级路由
-      if (routeLocationNamedRaw.template?.parent && routerInstance.hasRoute(routeLocationNamedRaw.template?.parent)) {
-        prototype.path = prototype.path.replace(/^\/+/g, '') // 如果存在父级路由，则需要去除地址中意 / 开头的情况
-        routerInstance.addRoute(routeLocationNamedRaw.template?.parent, prototype) // 在指定的父路由下，添加路由
-      } else {
-        prototype.path = !/^\/.*/.test(prototype.path) ? '/' + prototype.path : prototype.path // 如果不存在父级别路由，则需要检查是否携带/开头，如果没有，则需要补充
-        routerInstance.addRoute(prototype) // 直接添加路由
+): { parent?: string; routerRaw: RouteComponent } | void {
+  try {
+    if (allowCreateRouteRecordRawByTemplate(routeLocationNamedRaw, pageTemplates)) {
+      const prototype = mergeDeepRight(
+        clone(pageTemplates[routeLocationNamedRaw?.template?.pageKey as string]),
+        routeLocationNamedRaw?.template?.route || {}
+      ) // 合成模版数据
+      if (!isNil(prototype.component)) {
+        prototype.component =
+          prototype.component.constructor == Function
+            ? _routePageComponentLoader.bind({ name: routeLocationNamedRaw.name }, prototype.component)
+            : prototype.component // 指定上下文做好异步加载准备
+        prototype.name = routeLocationNamedRaw.name
+        if (routerInstance) {
+          // 判断添加的路由是否有父级路由
+          if (
+            routeLocationNamedRaw.template?.parent &&
+            routerInstance.hasRoute(routeLocationNamedRaw.template?.parent)
+          ) {
+            prototype.path = prototype.path.replace(/^\/+/g, '') // 如果存在父级路由，则需要去除地址中意 / 开头的情况
+            return {
+              parent: routeLocationNamedRaw.template?.parent,
+              routerRaw: prototype as RouteComponent
+            }
+            // routerInstance.addRoute(routeLocationNamedRaw.template?.parent, prototype) // 在指定的父路由下，添加路由
+          } else {
+            prototype.path = !/^\/.*/.test(prototype.path) ? '/' + prototype.path : prototype.path // 如果不存在父级别路由，则需要检查是否携带/开头，如果没有，则需要补充
+            // routerInstance.addRoute(prototype) // 直接添加路由
+            return {
+              routerRaw: prototype as RouteComponent
+            }
+          }
+        }
       }
+    } else {
+      throw new Error(`VmoRouter[ERROR]: 创建动态路由失败:
+        \n [routeLocationNamedRaw?.name]:${routeLocationNamedRaw?.name as string}
+        \n [routeLocationNamedRaw?.template]:${routeLocationNamedRaw?.template?.pageKey as string}
+        \n PGS[routeLocationNamedRaw?.template]:${pageTemplates[routeLocationNamedRaw?.template?.pageKey as string]}
+        \n 请补全以上参数`)
     }
-    return prototype as RouteComponent
+  } catch (err) {
+    throw err
   }
 }
 

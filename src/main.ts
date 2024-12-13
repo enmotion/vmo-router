@@ -4,6 +4,7 @@ import { createWebHashHistory } from 'vue-router'
 import { createRouter } from '../index'
 import type { VmoRouteMenuItemRaw, VmoRouteToRaw } from '../types'
 import { createApp } from 'vue'
+import { createPinia } from 'pinia'
 import PGS from './pages/index'
 import App from './App.vue'
 console.log(PGS)
@@ -18,7 +19,56 @@ try {
       history: createWebHashHistory(),
       routes: [mergeAll([PGS.MainPg, { children: [PGS.SampleA, PGS.SampleB] }]), PGS.Error404]
     },
-    PGS
+    PGS,
+    [
+      {
+        label: 'sample-a:sample-a1',
+        to: {
+          name: 'sample-a1',
+          params: {
+            name: 'enmotion'
+          },
+          template: {
+            pageKey: 'SampleA',
+            parent: 'main',
+            route: {
+              path: 'sample-a1/test/:name',
+              props: true
+            }
+          }
+        }
+      },
+      {
+        label: 'sample-a:sample-a2',
+        to: {
+          name: 'sample-a2',
+          params: {
+            name: 'enmotion2'
+          },
+          template: {
+            pageKey: 'SampleA',
+            parent: 'main',
+            route: {
+              path: 'sample-a2/:name/test',
+              props: true
+            }
+          }
+        }
+      },
+      {
+        label: 'sample-b:sample-b1',
+        to: {
+          name: 'sample-b1',
+          template: {
+            pageKey: 'SampleB',
+            parent: 'main',
+            route: {
+              path: 'sample-b1'
+            }
+          }
+        }
+      }
+    ].map(item => item.to)
   )
   router.beforeEach((to, from, next) => {
     if (to.matched.length == 0) {
@@ -28,16 +78,8 @@ try {
     next()
   })
   console.log(router)
-  createApp(App).use(router).mount('#app')
+  createApp(App).use(createPinia()).use(router).mount('#app')
   // router.$instance.replace({ name: 'sample-01' })
-  router
-    .push({ name: 'sample-b' })
-    .then(res => {
-      console.log(res)
-    })
-    .catch(err => {
-      console.log(err)
-    })
 } catch (err) {
   console.log(err)
 }

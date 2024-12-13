@@ -8,6 +8,7 @@
 <script lang="ts">
 import { defineComponent, ref } from 'vue'
 import type { PropType } from 'vue'
+import { useRoute } from '@lib'
 
 export default defineComponent({
   name: 'sample-a',
@@ -19,8 +20,11 @@ export default defineComponent({
   },
   setup(props, context) {
     const text = ref('')
+    const route = useRoute()
+
     return {
-      text
+      text,
+      route
     }
   }
 })

@@ -25,7 +25,7 @@
       <div class="flex flex-col w-[200px] bg-gray-900 text-xs border-l border-gray-800 text-white">
         <!-- {{ computedAllRouters }} -->
         <span
-          v-for="(router, index) in computedAllRouters"
+          v-for="(router, index) in routers"
           :key="index"
           class="h-[40px] flex hover:bg-red-500 flex-row items-center px-[20px] border-b border-gray-800 text-white cursor-pointer duration-300 transition-all">
           {{ router.name }}
@@ -35,15 +35,17 @@
   </div>
 </template>
 <script lang="ts">
-import { defineComponent, computed } from 'vue'
+import { RouteRecord } from 'vue-router'
+import { defineComponent, computed, ref } from 'vue'
 import { VmoRouteMenuItemRaw } from '@type'
-import { useRouter } from '@lib'
+import { useRouter, useRoute } from '@lib'
 // import type { PropType } from 'vue'
 
 export default defineComponent({
   name: 'main-pg',
   setup(props, context) {
     const router = useRouter()
+    const routers = ref(router?.getRoutes?.() ?? ([] as RouteRecord[]))
     const menu: VmoRouteMenuItemRaw<{ label: string }, Record<string, any>>[] = [
       {
         label: 'sample-a:sample-a1',
@@ -93,15 +95,14 @@ export default defineComponent({
         }
       }
     ]
-    const computedAllRouters = computed(() => {
-      return router?.getRoutes?.() ?? []
-    })
     function routerTo(item: VmoRouteMenuItemRaw<{ label: string }, Record<string, any>>) {
       router.push(item.to, true)
+      routers.value = router?.getRoutes?.() ?? []
+      // router.back()
       console.log(router?.getRoutes?.())
     }
     return {
-      computedAllRouters,
+      routers,
       menu,
       routerTo
     }
