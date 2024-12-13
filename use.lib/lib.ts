@@ -2,7 +2,7 @@
  * @Author: enmotion
  * @Date: 2023-11-07 15:43:42
  * @Last Modified by: enmotion
- * @Last Modified time: 2024-12-14 00:36:22
+ * @Last Modified time: 2024-12-14 00:47:58
  */
 
 import type { RouteRecordRaw, Router } from 'vue-router'
@@ -51,7 +51,7 @@ export function validateVmoRouterToRaw<META extends Record<string, any>>(
   return (
     [
       routeLocationNamedRaw?.name,
-      routeLocationNamedRaw?.template,
+      routeLocationNamedRaw?.template?.route?.path,
       pageTemplates[routeLocationNamedRaw?.template?.pageKey as string]
     ].filter((item: any) => isNil(item) || isEmpty(item)).length == 0
   )
@@ -75,11 +75,13 @@ export function addRouterWithVmoRouterToRaw<META extends Record<string, any>>(
   routerInstance?: Router
 ) {
   try {
+    // 1. 验证路由生成配置 VmoRouteToRaw<META> 是否合法正确
     if (validateVmoRouterToRaw(routeLocationNamedRaw, pageTemplates)) {
+      // 2. merge 最终的模版数据
       const prototype = mergeDeepRight(
         clone(pageTemplates[routeLocationNamedRaw?.template?.pageKey as string]),
         routeLocationNamedRaw?.template?.route ?? {}
-      ) // merge 最终的模版数据
+      )
       if (!isNil(prototype.component)) {
         typeof 'sser' == 'function'
         prototype.component =
@@ -88,6 +90,7 @@ export function addRouterWithVmoRouterToRaw<META extends Record<string, any>>(
             : prototype.component // 指定上下文做好异步加载准备
         prototype.name = routeLocationNamedRaw.name
         if (routerInstance) {
+          // 3. 判断父路由是否存在
           if (
             routeLocationNamedRaw.template?.parent &&
             routerInstance.hasRoute(routeLocationNamedRaw.template?.parent)
@@ -105,7 +108,6 @@ export function addRouterWithVmoRouterToRaw<META extends Record<string, any>>(
     } else {
       throw new Error(`VmoRouter[ERROR]: 创建动态路由失败:
         \n [routeLocationNamedRaw?.name]:${routeLocationNamedRaw?.name as string}
-        \n [routeLocationNamedRaw?.template]:${routeLocationNamedRaw?.template?.pageKey as string}
         \n PGS[routeLocationNamedRaw?.template]:${pageTemplates[routeLocationNamedRaw?.template?.pageKey as string]}
         \n 请补全以上参数`)
     }

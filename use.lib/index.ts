@@ -2,7 +2,7 @@
  * @Author: enmotion
  * @Date: 2024-12-05 23:19:20
  * @Last Modified by: enmotion
- * @Last Modified time: 2024-12-12 17:31:30
+ * @Last Modified time: 2024-12-14 00:44:41
  */
 import * as VueRouter from 'vue-router'
 import {
@@ -42,8 +42,12 @@ function useRouter<META extends Record<string, any>>(): Router & { $instance: Ro
 }
 /**
  * 构建劫持代理方法
+ * 1. 传递 option 配置 创建一个vue-router的实例
+ * 2. 重载所有路由？？
+ * 3. 返回 vue-router 实例的代理对象，通过代理劫持部分需要重置的方法
  * @param options // 路由表
  * @param template // 模版池对象
+ * @param reloadRouters // 需要重载的路由数据
  * @returns {Router & { $instance: Router }} // 返回代理对象
  */
 function createRouter<META extends Record<string, any>>(
@@ -53,18 +57,6 @@ function createRouter<META extends Record<string, any>>(
 ) {
   const _router: Router = VueRouter.createRouter(options)
   reloadRoutes(reloadRouters)
-  console.log('sss')
-  // 重注册属性或方法映射
-  const _registration: Methods<META> = {
-    push,
-    replace,
-    hasRoute,
-    addRouter,
-    removeRoute,
-    reloadRoutes,
-    clearRoutes,
-    generateRousteByTreeData
-  }
   /**
    * 劫持 push 方法
    * @param to 目标路由
@@ -137,7 +129,17 @@ function createRouter<META extends Record<string, any>>(
       })
   }
   function clearRoutes() {}
-
+  // 重注册属性或方法映射
+  const _registration: Methods<META> = {
+    push,
+    replace,
+    hasRoute,
+    addRouter,
+    removeRoute,
+    reloadRoutes,
+    clearRoutes,
+    generateRousteByTreeData
+  }
   return new Proxy(_router, {
     get(target, prop, receiver) {
       if (!_registration?.[prop as keyof Methods<META>]) {
