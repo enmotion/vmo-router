@@ -128,7 +128,7 @@ function createRouter<META extends Record<string, any>>(
   function generateRousteByTreeData() {}
   function reloadRoutes(reloads: VmoRouteToRaw<META>[]) {
     reloads
-      .sort((a, b) => {
+      .sort(a => {
         return a.template?.parent ? 1 : -1
       })
       .forEach(async item => {
