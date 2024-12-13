@@ -21,7 +21,7 @@ import {
 } from 'vue-router'
 import type { Router, RouterOptions, RouteRecordNameGeneric, RouteRecordRaw, NavigationFailure } from 'vue-router'
 import { VmoRouteToRaw } from '@type'
-import { createRouteRecordRawByTemplate } from './lib'
+import { addRouterWithVmoRouterToRaw } from './lib'
 
 export type Methods<META extends Record<string, any>> = {
   hasRoute: (name: NonNullable<RouteRecordNameGeneric>) => boolean
@@ -108,6 +108,7 @@ function createRouter<META extends Record<string, any>>(
       }
     } catch (err) {
       console.error(err)
+      _router[method](to)
     }
   }
   /* 重注册方法 */
@@ -116,7 +117,7 @@ function createRouter<META extends Record<string, any>>(
   }
   async function addRouter(to: VmoRouteToRaw<META>) {
     try {
-      await createRouteRecordRawByTemplate(to, template, _router)
+      await addRouterWithVmoRouterToRaw(to, template, _router)
     } catch (err) {
       console.error(err)
       return false

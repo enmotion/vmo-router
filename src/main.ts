@@ -9,10 +9,6 @@ import PGS from './pages/index'
 import App from './App.vue'
 console.log(PGS)
 
-const menuItem: VmoRouteToRaw<{ keepAlive: false }> = {
-  name: ''
-}
-
 try {
   const router = createRouter(
     {
@@ -69,6 +65,7 @@ try {
       }
     ].map((item: any) => item.to)
   )
+  createApp(App).use(createPinia()).use(router).mount('#app')
   router.beforeEach((to, from, next) => {
     if (to.matched.length == 0) {
       next({ name: 'error-404' })
@@ -76,8 +73,6 @@ try {
     }
     next()
   })
-  console.log('OK')
-  createApp(App).use(createPinia()).use(router).mount('#app')
   // router.$instance.replace({ name: 'sample-01' })
 } catch (err) {
   console.log(err)

@@ -48,6 +48,12 @@ export default defineComponent({
     const routers = ref(router?.getRoutes?.() ?? ([] as RouteRecord[]))
     const menu: VmoRouteMenuItemRaw<{ label: string }, Record<string, any>>[] = [
       {
+        label: 'unknow',
+        to: {
+          name: 'unknow'
+        }
+      },
+      {
         label: 'sample-a',
         to: {
           name: 'sample-a'

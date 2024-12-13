@@ -2,10 +2,10 @@
  * @Author: enmotion
  * @Date: 2023-11-07 15:43:42
  * @Last Modified by: enmotion
- * @Last Modified time: 2024-12-12 16:09:39
+ * @Last Modified time: 2024-12-14 00:36:22
  */
 
-import type { RouteRecordRaw, Router, RouteComponent } from 'vue-router'
+import type { RouteRecordRaw, Router } from 'vue-router'
 import type { VmoRouteToRaw } from '@type'
 import upperFirst from 'lodash/upperFirst' // 首字母大写字符转换
 import camelCase from 'lodash/camelCase' // 骆驼字符转换 your-name => YourName
@@ -36,61 +36,67 @@ export function loadPageTemplateByImport(templates: Record<string, unknown>): Re
 
 /* methods ---------- ---------- ---------- ---------- ---------- ----------*/
 /**
- * 动态路由添加判断方法
+ * 是否为合法的 VmoRouterToRaw 对象
+ * 1. 是否存在新的路由名称;
+ * 2. 是否存在匹配的模版文件;
+ * 3. 路由名称是否已被占用; 待实现
+ * 4. 路由路径是否已被占用; 待实现
  * @param routeLocationNamedRaw 动态路由添加所需的配置
  * @returns {boolean}
  */
-export function allowCreateRouteRecordRawByTemplate<META extends Record<string, any>>(
+export function validateVmoRouterToRaw<META extends Record<string, any>>(
   routeLocationNamedRaw: VmoRouteToRaw<META>,
   pageTemplates: { [key: string]: RouteRecordRaw }
 ): boolean {
-  if (
+  return (
     [
       routeLocationNamedRaw?.name,
       routeLocationNamedRaw?.template,
       pageTemplates[routeLocationNamedRaw?.template?.pageKey as string]
     ].filter((item: any) => isNil(item) || isEmpty(item)).length == 0
-  ) {
-    return true
-  } else {
-    return false
-  }
+  )
 }
 
 /**
  * 依据模版创建动态路由创建
+ * 1. 验证路由生成配置 VmoRouteToRaw<META> 是否合法正确
+ * 2. merge最终的路由配置，匹配的模版池对象+配置
+ * 3. 判断父路由是否存在
+ * 4. 父路由存在则添加为父路由的子级，否则作为根路由装配
  * @param routeLocationNamedRaw 动态路由添加所需的配置
  * @param autoAddToRouter 是否同步完成添加操作
  * @param routerInstance 路由对象实例
  * @param pageTemplates 路由模版持有者
  * @returns {VmoxRouteLocationNamedRaw|void}
  */
-export function createRouteRecordRawByTemplate<META extends Record<string, any>>(
+export function addRouterWithVmoRouterToRaw<META extends Record<string, any>>(
   routeLocationNamedRaw: VmoRouteToRaw<META>,
   pageTemplates: { [key: string]: RouteRecordRaw },
   routerInstance?: Router
 ) {
   try {
-    if (allowCreateRouteRecordRawByTemplate(routeLocationNamedRaw, pageTemplates)) {
+    if (validateVmoRouterToRaw(routeLocationNamedRaw, pageTemplates)) {
       const prototype = mergeDeepRight(
         clone(pageTemplates[routeLocationNamedRaw?.template?.pageKey as string]),
         routeLocationNamedRaw?.template?.route ?? {}
-      ) // 合成模版数据
+      ) // merge 最终的模版数据
       if (!isNil(prototype.component)) {
+        typeof 'sser' == 'function'
         prototype.component =
-          prototype.component.constructor == Function
+          typeof prototype.component == 'function'
             ? _routePageComponentLoader.bind({ name: routeLocationNamedRaw.name }, prototype.component)
             : prototype.component // 指定上下文做好异步加载准备
         prototype.name = routeLocationNamedRaw.name
         if (routerInstance) {
-          // 判断添加的路由是否有父级路由
           if (
             routeLocationNamedRaw.template?.parent &&
             routerInstance.hasRoute(routeLocationNamedRaw.template?.parent)
           ) {
-            prototype.path = prototype.path.replace(/^\/+/g, '') // 如果存在父级路由，则需要去除地址中意 / 开头的情况
+            // 存在指定的父级路由，且父级路由已经装载
+            prototype.path = prototype.path.replace(/^\/+/g, '') // 如果存在父级路由，则需要去除地址中以 / 开头的情况
             routerInstance.addRoute(routeLocationNamedRaw.template?.parent, prototype) // 在指定的父路由下，添加路由
           } else {
+            // 否则 当作根路由装载，忽视其可能的父级路由情况
             prototype.path = !/^\/.*/.test(prototype.path) ? '/' + prototype.path : prototype.path // 如果不存在父级别路由，则需要检查是否携带/开头，如果没有，则需要补充
             routerInstance.addRoute(prototype) // 直接添加路由
           }
@@ -115,7 +121,8 @@ export function createRouteRecordRawByTemplate<META extends Record<string, any>>
  * @returns function // 返回最终的加载器
  * 在懒加载的路由添加模式中，如果简单采用复制的方式，将会导致路由被重复声明内存空间，这将导致两个问题
  * 1.开发时，不得不采用刷新页面的方式，才能看到热更；
- * 2.生产时，内存空间被不断的过度消耗，所以目前采用更为轻巧的模式，只是浅拷贝，保持热更的同时，也能告诉路由缓存对应的内容;
+ * 2.生产时，内存空间被不断的过度消耗，
+ * 所以目前采用更为轻巧的模式，只是浅拷贝，保持热更的同时，也能告诉路由缓存对应的内容;
  */
 async function _routePageComponentLoader(this: any, component: any) {
   const context = this
