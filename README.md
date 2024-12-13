@@ -4,19 +4,21 @@
 
 #### 功能特点：
 
-1. 所有页面模版化，支持在工程内部构件一个自动加载所有页面的自动装载方法，先将页面装载成 template，全部支持懒加载 (方法是否通用待验证)
-2. 基础页面预实例，部分基础页面，如登录，首页，异常报错页面，预先装载。成为系统的基础路由。
+1. **池化路由模版**：支持在工程内部构件一个自动加载所有页面的自动装载方法，先将页面装载成 template，全部支持懒加载 (方法是否通用待验证)
+2. **静路由预实例**：支持基础页面，如登录，首页，异常报错页面，预先装载。成为系统的基础路由，支持动静分离。
 3.
 4. 菜单指定路由装载，当用户登录后，我们可以通过后端返回的 JSON 来实际装填所有的 template ，构成真正的路由表。在这个过程中，需要考虑对每个模版实例单独设置 name ，path，keepAlive ,title, params，以及页面的父子路由关系。
 5. 菜单装载路由的缓存处理，当用户登录后，菜单装载的路由需要缓存化，即用户刷新页面时，也会装载全部的菜单指定路由表。避免刷新丢失页面
 6. 动态路由装载，用户在实际使用中，考虑到低代码的情况，我们需要考虑用户可能装载页面时，存在部分路由未能完全加载，而是用户点击跳转时，判断是否装载，如未能装载则动态装载，并且也要添加入缓存
 7. 页面返回禁止，比如部分页面再为保存时，不可直接离开或者返回需要得到用户的再次确认。
-8. 权限控制，支持简单的权限点匹配控制方式
-9. 路由动画，此处 配合 transition 组件一起使用
+<!-- 8. 权限控制，支持简单的权限点匹配控制方式 -->
+8. 路由动画，此处 配合 transition 组件一起使用
 
 #### 如何安装:
 
-- [VS Code](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur) + [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin).
+```typescript
+npm i vmo-router
+```
 
 ## Type Support For `.vue` Imports in TS
 

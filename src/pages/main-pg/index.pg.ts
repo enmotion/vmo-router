@@ -1,13 +1,10 @@
 import type { VmoRouteRecordRaw } from '../../../types/index'
 
-const page: VmoRouteRecordRaw<{ avoidTag: boolean }> = {
+const page: VmoRouteRecordRaw<Record<string, any>> = {
   name: 'main',
   path: '/',
   redirect: { path: 'sample-a' },
-  meta: {
-    keepAlive: false,
-    avoidTag: true
-  },
+  meta: ['fdasf', 'fdsafsadf'],
   component: () => import('./page.vue')
 }
 export default page
