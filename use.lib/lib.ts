@@ -69,12 +69,12 @@ export function createRouteRecordRawByTemplate<META extends Record<string, any>>
   routeLocationNamedRaw: VmoRouteToRaw<META>,
   pageTemplates: { [key: string]: RouteRecordRaw },
   routerInstance?: Router
-): { parent?: string; routerRaw: RouteComponent } | void {
+) {
   try {
     if (allowCreateRouteRecordRawByTemplate(routeLocationNamedRaw, pageTemplates)) {
       const prototype = mergeDeepRight(
         clone(pageTemplates[routeLocationNamedRaw?.template?.pageKey as string]),
-        routeLocationNamedRaw?.template?.route || {}
+        routeLocationNamedRaw?.template?.route ?? {}
       ) // 合成模版数据
       if (!isNil(prototype.component)) {
         prototype.component =
@@ -89,17 +89,10 @@ export function createRouteRecordRawByTemplate<META extends Record<string, any>>
             routerInstance.hasRoute(routeLocationNamedRaw.template?.parent)
           ) {
             prototype.path = prototype.path.replace(/^\/+/g, '') // 如果存在父级路由，则需要去除地址中意 / 开头的情况
-            return {
-              parent: routeLocationNamedRaw.template?.parent,
-              routerRaw: prototype as RouteComponent
-            }
-            // routerInstance.addRoute(routeLocationNamedRaw.template?.parent, prototype) // 在指定的父路由下，添加路由
+            routerInstance.addRoute(routeLocationNamedRaw.template?.parent, prototype) // 在指定的父路由下，添加路由
           } else {
             prototype.path = !/^\/.*/.test(prototype.path) ? '/' + prototype.path : prototype.path // 如果不存在父级别路由，则需要检查是否携带/开头，如果没有，则需要补充
-            // routerInstance.addRoute(prototype) // 直接添加路由
-            return {
-              routerRaw: prototype as RouteComponent
-            }
+            routerInstance.addRoute(prototype) // 直接添加路由
           }
         }
       }

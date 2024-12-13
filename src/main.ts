@@ -47,7 +47,6 @@ try {
           },
           template: {
             pageKey: 'SampleA',
-            parent: 'main',
             route: {
               path: 'sample-a2/:name/test',
               props: true
@@ -68,7 +67,7 @@ try {
           }
         }
       }
-    ].map(item => item.to)
+    ].map((item: any) => item.to)
   )
   router.beforeEach((to, from, next) => {
     if (to.matched.length == 0) {
@@ -77,7 +76,7 @@ try {
     }
     next()
   })
-  console.log(router)
+  console.log('OK')
   createApp(App).use(createPinia()).use(router).mount('#app')
   // router.$instance.replace({ name: 'sample-01' })
 } catch (err) {

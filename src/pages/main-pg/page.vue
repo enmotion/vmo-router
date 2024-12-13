@@ -48,6 +48,12 @@ export default defineComponent({
     const routers = ref(router?.getRoutes?.() ?? ([] as RouteRecord[]))
     const menu: VmoRouteMenuItemRaw<{ label: string }, Record<string, any>>[] = [
       {
+        label: 'sample-a',
+        to: {
+          name: 'sample-a'
+        }
+      },
+      {
         label: 'sample-a:sample-a1',
         to: {
           name: 'sample-a1',
@@ -96,7 +102,7 @@ export default defineComponent({
       }
     ]
     function routerTo(item: VmoRouteMenuItemRaw<{ label: string }, Record<string, any>>) {
-      router.push(item.to, true)
+      router.push(item.to)
       routers.value = router?.getRoutes?.() ?? []
       // router.back()
       console.log(router?.getRoutes?.())

@@ -21,14 +21,13 @@ import {
 } from 'vue-router'
 import type { Router, RouterOptions, RouteRecordNameGeneric, RouteRecordRaw, NavigationFailure } from 'vue-router'
 import { VmoRouteToRaw } from '@type'
-import { allowCreateRouteRecordRawByTemplate, createRouteRecordRawByTemplate } from './lib'
-import { type RouterStore } from './store'
+import { createRouteRecordRawByTemplate } from './lib'
 
 export type Methods<META extends Record<string, any>> = {
   hasRoute: (name: NonNullable<RouteRecordNameGeneric>) => boolean
-  addRouter: (to: VmoRouteToRaw<META>, autoAddToRouter: boolean) => Promise<boolean>
-  push: (to: VmoRouteToRaw<META>, autoAddToRouter: boolean) => Promise<NavigationFailure | void | undefined>
-  replace: (to: VmoRouteToRaw<META>, autoAddToRouter: boolean) => Promise<NavigationFailure | void | undefined>
+  addRouter: (to: VmoRouteToRaw<META>) => void
+  push: (to: VmoRouteToRaw<META>) => NavigationFailure | void | undefined
+  replace: (to: VmoRouteToRaw<META>) => NavigationFailure | void | undefined
   removeRoute: (name: NonNullable<RouteRecordNameGeneric>) => void
   reloadRoutes: (reloads: VmoRouteToRaw<META>[]) => void
   clearRoutes: () => void
@@ -53,66 +52,27 @@ function createRouter<META extends Record<string, any>>(
   reloadRouters: VmoRouteToRaw<META>[]
 ) {
   const _router: Router = VueRouter.createRouter(options)
-  reloadRouters
-    .filter(r => {
-      return !r.template?.parent
-    })
-    .forEach(async item => {
-      await addRouter(item)
-    })
-  reloadRouters
-    .filter(r => {
-      return !!r.template?.parent
-    })
-    .forEach(async item => {
-      await addRouter(item)
-    })
-
+  reloadRoutes(reloadRouters)
+  console.log('sss')
   // 重注册属性或方法映射
   const _registration: Methods<META> = {
-    hasRoute,
-    addRouter,
     push,
     replace,
+    hasRoute,
+    addRouter,
     removeRoute,
     reloadRoutes,
     clearRoutes,
     generateRousteByTreeData
   }
-  /* 重注册方法 */
-  function hasRoute(name: NonNullable<RouteRecordNameGeneric>) {
-    return _router.hasRoute(name)
-  }
-  async function addRouter(to: VmoRouteToRaw<META>) {
-    try {
-      const raw = createRouteRecordRawByTemplate(to, template, _router)
-      if (!!raw) {
-        if (raw?.parent) {
-          _router.addRoute(raw?.parent, raw?.routerRaw as VueRouter.RouteRecordRaw)
-        } else {
-          _router.addRoute(raw?.routerRaw as VueRouter.RouteRecordRaw)
-        }
-        return true
-      } else {
-        return false
-      }
-    } catch (err) {
-      console.error(err)
-      return false
-    }
-  }
-  // function addRouter(parentName: NonNullable<RouteRecordNameGeneric>, route: RouteRecordRaw) {
-  //   return _router.addRoute(parentName, route)
-  // }
   /**
    * 劫持 push 方法
    * @param to 目标路由
-   * @param autoAddToRouter 是否自动装载
    * @returns
    */
-  async function push(to: VmoRouteToRaw<META>, autoAddToRouter: boolean = true) {
+  function push(to: VmoRouteToRaw<META>) {
     try {
-      return _handleRouteNavigation('push', to, autoAddToRouter)
+      _handleRouteNavigation('push', to)
     } catch (err) {
       console.error(err)
     }
@@ -120,52 +80,62 @@ function createRouter<META extends Record<string, any>>(
   /**
    * 劫持 replace 方法
    * @param to 目标路由
-   * @param autoAddToRouter 是否自动装载
    * @returns
    */
-  async function replace(to: VmoRouteToRaw<META>, autoAddToRouter: boolean = true) {
+  function replace(to: VmoRouteToRaw<META>) {
     try {
-      return _handleRouteNavigation('replace', to, autoAddToRouter)
+      _handleRouteNavigation('replace', to)
     } catch (err) {
       console.error(err)
     }
   }
-  function removeRoute(name: NonNullable<RouteRecordNameGeneric>) {
-    return _router.removeRoute(name)
-  }
-
-  function generateRousteByTreeData() {}
-  function reloadRoutes(reloads: VmoRouteToRaw<META>[]) {
-    reloads.forEach(router => {})
-  }
-  function clearRoutes() {}
-
   /**
-   * 私有导航跳转处理函数,优化push 与 replace 的结构
+   * 私有导航跳转处理函数,更改 push 与 replace 处理逻辑
    * @param method
    * @param to
    * @param autoAddToRouter
    * @returns
    */
-  async function _handleRouteNavigation(
-    method: 'push' | 'replace',
-    to: VmoRouteToRaw<META>,
-    autoAddToRouter: boolean = true
-  ) {
+  function _handleRouteNavigation(method: 'push' | 'replace', to: VmoRouteToRaw<META>) {
     try {
-      if (!!to.name && !_router.hasRoute(to.name)) {
-        if (allowCreateRouteRecordRawByTemplate(to, template)) {
-          addRouter(to)
-          return _router[method](to)
-        }
+      // name 存在，且当前路由中没有此路由的情况，则会进行路由加载, 等待成功后，再进行跳转
+      if (!!to.name && !hasRoute(to.name)) {
+        addRouter(to).then(() => {
+          _router[method](to)
+        })
       } else {
-        return _router[method](to)
+        _router[method](to)
       }
     } catch (err) {
       console.error(err)
-      return _router[method](to)
     }
   }
+  /* 重注册方法 */
+  function hasRoute(name: NonNullable<RouteRecordNameGeneric>) {
+    return _router.hasRoute(name)
+  }
+  async function addRouter(to: VmoRouteToRaw<META>) {
+    try {
+      await createRouteRecordRawByTemplate(to, template, _router)
+    } catch (err) {
+      console.error(err)
+      return false
+    }
+  }
+  function removeRoute(name: NonNullable<RouteRecordNameGeneric>) {
+    return _router.removeRoute(name)
+  }
+  function generateRousteByTreeData() {}
+  function reloadRoutes(reloads: VmoRouteToRaw<META>[]) {
+    reloads
+      .sort((a, b) => {
+        return a.template?.parent ? 1 : -1
+      })
+      .forEach(async item => {
+        await addRouter(item)
+      })
+  }
+  function clearRoutes() {}
 
   return new Proxy(_router, {
     get(target, prop, receiver) {
