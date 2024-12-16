@@ -1,5 +1,5 @@
 import './assets/style.css'
-import { mergeAll } from 'ramda'
+import { mergeAll, findIndex } from 'ramda'
 import { createWebHashHistory } from 'vue-router'
 import { createRouter, type VmoRouteToRaw } from '../index'
 import { createApp } from 'vue'
@@ -8,7 +8,7 @@ import PGS from './pages/index'
 import App from './App.vue'
 import { VmoStore } from 'vmo-store'
 
-const store = new VmoStore<{ routers: VmoRouteToRaw<{ keepAlive: boolean; name: string }>[] }>({
+const data = new VmoStore<{ routers: VmoRouteToRaw<{ keepAlive: boolean; name: string }>[] }>({
   namespace: 'vmo-router',
   cryptoKey: 'aaafdasffasd',
   version: 1,
@@ -32,12 +32,20 @@ try {
     PGS,
     {
       pushRouterRaw: to => {
-        const routers = store.getData('routers')
+        const routers = data.$store.routers
+        to.template?.route.meta?.name
         routers.push(to)
-        store.setData('routers', routers)
+        data.$store.routers = routers
       },
-      getRouterRaws: () => store.getData('routers'),
-      removeRouterRaw: (name: string) => undefined
+      getRouterRaws: () => data.$store.routers,
+      removeRouterRaw: (name: string) => {
+        const routers = data.$store.routers
+        routers.splice(
+          findIndex(to => to.name == name, data.$store.routers),
+          1
+        )
+        data.$store.routers = routers
+      }
     }
   )
 
@@ -48,7 +56,7 @@ try {
     }
     next()
   })
-  router.reloadRoutes(store.getData('routers'))
+  router.reloadRoutes(data.$store.routers)
   // useRouterStore({
   //   cacherMethods: {
   //     getCacheRouters: () => [],
