@@ -1,42 +1,39 @@
-// /*
-//  * @Author: enmotion
-//  * @Date: 2023-11-09 10:36:24
-//  * @Last Modified by: enmotion
-//  * @Last Modified time: 2024-12-06 16:19:53
-//  * 路由全局状态管理器, 基于 pinia 实现
-//  */
-import { pluck, mergeDeepRight } from 'ramda'
-import type { Router } from 'vue-router'
-import { defineStore, type StoreDefinition } from 'pinia'
-import type { VmoRouteMenuItemRaw, VmoRouteToRaw } from '../types/index'
-import { multiply } from 'lodash'
-import { KeepAlive } from 'vue'
+/*
+ * @Author: enmotion
+ * @Date: 2023-11-09 10:36:24
+ * @Last Modified by: enmotion
+ * @Last Modified time: 2024-12-16 09:09:30
+ * 路由全局状态管理器, 基于 pinia 实现
+ */
+import { pluck, mergeDeepRight, mergeAll } from 'ramda'
+import { defineStore } from 'pinia'
+import type { VmoRouteToRaw } from '../types/index'
 
 export namespace RouterStore {
-  export type CacherMethods = {
-    setCacheRouters: (router: Router, mode: 'replace' | 'insert') => void
-    getCacheRouters: () => Router[]
+  export type CacherMethods<M extends Record<string, any>> = {
+    setCacheRouters: (router: VmoRouteToRaw<M>[]) => void
+    getCacheRouters: () => VmoRouteToRaw<M>[]
   }
   export interface State<M extends Record<string, any>> {
     preventNavigation: boolean
     preventDialogContent: { title: string; message: string }
-    mutipleCatch: boolean // 缓存模式 为ture 时，会缓存所有的路由表，false 只缓存当前路由，此设置可配合 token机制，做到浏览器开启新标签是否能打开用户获得授权的任意页面，或直接地址跳转；
+    mutipleCatch: boolean // 缓存模式 为ture 时，会缓存所有的路由表，false 只缓存当前路由，此设置可配合 token 机制，做到浏览器开启新标签是否能打开用户获得授权的任意页面，或直接地址跳转；
     dynamicRoutes: VmoRouteToRaw<M>[] // 动态添加路由加载表，作为缓存避免页面刷新时丢失
     keepAlivePage: string[] // 缓存路由表, 此表只在内存中存在，刷新后会丢弃
     keepAliveMax?: number
   }
 }
-export function generateRouterStore<M extends Record<string, any>>(option: {
-  cacherMethods: RouterStore.CacherMethods
-  preventDialogContent: { title: string; message: string }
-  mutipleCatch: boolean
+export function generateUseRouterStore<M extends Record<string, any>>(option: {
+  cacherMethods: RouterStore.CacherMethods<M>
+  preventDialogContent: { title?: string; message?: string }
+  mutipleCatch?: boolean
 }) {
   return defineStore('router', {
     state: (): RouterStore.State<M> => ({
       preventNavigation: false,
-      preventDialogContent: option.preventDialogContent,
-      mutipleCatch: option.mutipleCatch,
-      dynamicRoutes: [],
+      preventDialogContent: mergeAll([{ title: 'string', message: 'string' }, option.preventDialogContent]),
+      mutipleCatch: option.mutipleCatch ?? true,
+      dynamicRoutes: option.cacherMethods.getCacheRouters(),
       keepAlivePage: [],
       keepAliveMax: 100
     }),

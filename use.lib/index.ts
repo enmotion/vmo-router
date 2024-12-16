@@ -2,7 +2,7 @@
  * @Author: enmotion
  * @Date: 2024-12-05 23:19:20
  * @Last Modified by: enmotion
- * @Last Modified time: 2024-12-14 00:44:41
+ * @Last Modified time: 2024-12-16 09:16:06
  */
 import * as VueRouter from 'vue-router'
 import {
@@ -24,7 +24,6 @@ import { VmoRouteToRaw } from '@type'
 import { addRouterWithVmoRouterToRaw } from './lib'
 
 export type Methods<META extends Record<string, any>> = {
-  hasRoute: (name: NonNullable<RouteRecordNameGeneric>) => boolean
   addRouter: (to: VmoRouteToRaw<META>) => void
   push: (to: VmoRouteToRaw<META>) => NavigationFailure | void | undefined
   replace: (to: VmoRouteToRaw<META>) => NavigationFailure | void | undefined
@@ -57,6 +56,7 @@ function createRouter<META extends Record<string, any>>(
 ) {
   const _router: Router = VueRouter.createRouter(options)
   reloadRoutes(reloadRouters)
+
   /**
    * 劫持 push 方法
    * @param to 目标路由
@@ -91,7 +91,7 @@ function createRouter<META extends Record<string, any>>(
   function _handleRouteNavigation(method: 'push' | 'replace', to: VmoRouteToRaw<META>) {
     try {
       // name 存在，且当前路由中没有此路由的情况，则会进行路由加载, 等待成功后，再进行跳转
-      if (!!to.name && !hasRoute(to.name)) {
+      if (!!to.name && !_router.hasRoute(to.name)) {
         addRouter(to).then(() => {
           _router[method](to)
         })
@@ -103,23 +103,34 @@ function createRouter<META extends Record<string, any>>(
       _router[method](to)
     }
   }
-  /* 重注册方法 */
-  function hasRoute(name: NonNullable<RouteRecordNameGeneric>) {
-    return _router.hasRoute(name)
-  }
+  /**
+   * 劫持 addRouter 方法
+   * @param to 需要动态新增的路由配置
+   * @returns
+   */
   async function addRouter(to: VmoRouteToRaw<META>) {
     try {
-      await addRouterWithVmoRouterToRaw(to, template, _router)
+      return addRouterWithVmoRouterToRaw(to, template, _router)
     } catch (err) {
       console.error(err)
       return false
     }
   }
+  /**
+   * 劫持删除路由的方法
+   * @param name
+   * @returns
+   */
   function removeRoute(name: NonNullable<RouteRecordNameGeneric>) {
     return _router.removeRoute(name)
   }
   function generateRousteByTreeData() {}
+  /**
+   * 重载所需动态路由 批量操作
+   * @param reloads
+   */
   function reloadRoutes(reloads: VmoRouteToRaw<META>[]) {
+    // 先操作没有父路由的，再操作需要父路由的情况
     reloads
       .sort(a => {
         return a.template?.parent ? 1 : -1
@@ -133,7 +144,6 @@ function createRouter<META extends Record<string, any>>(
   const _registration: Methods<META> = {
     push,
     replace,
-    hasRoute,
     addRouter,
     removeRoute,
     reloadRoutes,
