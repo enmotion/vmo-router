@@ -5,7 +5,7 @@ const page: VmoRouteRecordRaw<{ avoidTag: boolean; keepAlive: boolean }> = {
   path: '/sample-b',
   props: true,
   meta: {
-    keepAlive: false,
+    keepAlive: true,
     avoidTag: true
   },
   component: () => import('./page.vue')

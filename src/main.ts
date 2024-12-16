@@ -7,8 +7,12 @@ import { createPinia } from 'pinia'
 import PGS from './pages/index'
 import App from './App.vue'
 import { VmoStore } from 'vmo-store'
+import { useRouterStore } from '@lib/store'
 
-const data = new VmoStore<{ routers: VmoRouteToRaw<{ keepAlive: boolean; name: string }>[] }>({
+type Meta = {
+  keepAlive: boolean; name: string
+}
+const data = new VmoStore<{ routers: VmoRouteToRaw<Meta>[] }>({
   namespace: 'vmo-router',
   cryptoKey: 'aaafdasffasd',
   version: 1,
@@ -24,7 +28,8 @@ console.log(PGS)
 
 try {
   const app = createApp(App).use(createPinia())
-  const router = createRouter(
+  const store  = useRouterStore({})
+  const router = createRouter<Meta>(
     {
       history: createWebHashHistory(),
       routes: [mergeAll([PGS.MainPg, { children: [PGS.SampleA, PGS.SampleB] }]), PGS.Error404]
@@ -33,7 +38,6 @@ try {
     {
       pushRouterRaw: to => {
         const routers = data.$store.routers
-        to.template?.route.meta?.name
         routers.push(to)
         data.$store.routers = routers
       },
@@ -50,6 +54,10 @@ try {
   )
 
   router.beforeEach((to, from, next) => {
+    console.log(to)
+    if(to.meta.keepAlive){
+      store.setKeepAliveNames(to.name as string)
+    }
     if (to.matched.length == 0) {
       next({ name: 'error-404' })
       return

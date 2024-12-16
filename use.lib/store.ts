@@ -51,12 +51,18 @@ export function useRouterStore<M extends Record<string, any>>(
       getKeepAliveMax: state => state.keepAliveMax
     },
     actions: {
+      setKeepAliveNames(name:string){
+        this.keepAliveNames= Array.from(new Set([...this.keepAliveNames,name]));
+      },
+      removeKeepAliveNames(name:string){
+        this.keepAliveNames= this.keepAliveNames.filter(item=>item!=name)
+      },
       /**
        * 设置是否离开页面提示
        * @param navigationDisabled 是否禁止浏览器默认刷新，返回，导致离开页面的行为
        * @returns {void}
        */
-      getNavigationDisabled(navigationDisabled: boolean) {
+      setNavigationDisabled(navigationDisabled: boolean) {
         this.navigationDisabled = navigationDisabled
       },
       /**
