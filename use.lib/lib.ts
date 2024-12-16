@@ -6,6 +6,7 @@
  */
 
 import type { RouteRecordRaw, Router } from 'vue-router'
+import { getCurrentInstance, onBeforeMount, onUnmounted, ref } from 'vue'
 import type { VmoRouteToRaw } from '@type'
 import upperFirst from 'lodash/upperFirst' // 首字母大写字符转换
 import camelCase from 'lodash/camelCase' // 骆驼字符转换 your-name => YourName
@@ -137,4 +138,33 @@ async function _routePageComponentLoader(this: any, component: any) {
   // 新方法
   const compdata = mergeAll([module.default ? module.default : module, { name: context.name }])
   return Promise.resolve(compdata)
+}
+
+/**
+ * 阻止浏览器默认行为 刷新，返回，前进等 用于提示用户未保存填写数据场景 (此处仅仅只是阻止浏览器默认行为，需要配合路由跳转控制行为协同使用才能达成效果)
+ * 使用方法如下:
+ * 1.在vue root 节点上使用 usePreventBrowserBehavior() 方法 完成 window 对象绑定
+ * 2.在页面上就可以通过 ../state useRouterStateStore() 返回的 store 来进行是否阻拦跳转属性的操作 getPreventNavigation setPreventNavigation
+ * 3.在路由中，需要在跳转前 根据 store.getPreventNavigation 的状态作一次跳转提示 提示内容也可动态传递 通过 store.preventDialogContent 进行设置即可完成；
+ */
+export function usePreventBrowserBehavior(option: { title: string; message: string }) {
+  const isPrevent = ref(false)
+  const instance = getCurrentInstance()
+  if (instance) {
+    onBeforeMount(() => {
+      window.addEventListener('beforeunload', preventNav)
+    })
+    onUnmounted(() => {
+      // preventStore?.setPreventNavigation(false)
+      window.removeEventListener('beforeunload', preventNav)
+    })
+  }
+  function preventNav(event: BeforeUnloadEvent) {
+    if (!isPrevent.value) return
+    event.preventDefault()
+    event.returnValue = option
+  }
+  return {
+    isPrevent
+  }
 }

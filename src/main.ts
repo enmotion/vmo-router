@@ -17,17 +17,6 @@ try {
       routes: [mergeAll([PGS.MainPg, { children: [PGS.SampleA, PGS.SampleB] }]), PGS.Error404]
     },
     PGS,
-    []
-  )
-
-  router.beforeEach((to, from, next) => {
-    if (to.matched.length == 0) {
-      next({ name: 'error-404' })
-      return
-    }
-    next()
-  })
-  router.reloadRoutes(
     [
       {
         label: 'sample-a:sample-a1',
@@ -74,9 +63,93 @@ try {
             }
           }
         }
+      },
+      {
+        label: 'sample-c:sample-c1',
+        to: {
+          name: 'sample-c1',
+          template: {
+            pageKey: 'SampleC',
+            parent: 'main',
+            route: {
+              path: 'sample-c1'
+            }
+          }
+        }
       }
     ].map((item: any) => item.to)
   )
+
+  router.beforeEach((to, from, next) => {
+    if (to.matched.length == 0) {
+      next({ name: 'error-404' })
+      return
+    }
+    next()
+  })
+  // router.reloadRoutes(
+  //   [
+  //     {
+  //       label: 'sample-a:sample-a1',
+  //       to: {
+  //         name: 'sample-a1',
+  //         params: {
+  //           name: 'enmotion'
+  //         },
+  //         template: {
+  //           pageKey: 'SampleA',
+  //           parent: 'main',
+  //           route: {
+  //             path: 'sample-a1/test/:name',
+  //             props: true
+  //           }
+  //         }
+  //       }
+  //     },
+  //     {
+  //       label: 'sample-a:sample-a2',
+  //       to: {
+  //         name: 'sample-a2',
+  //         params: {
+  //           name: 'enmotion2'
+  //         },
+  //         template: {
+  //           pageKey: 'SampleA',
+  //           route: {
+  //             path: 'sample-a2/:name/test',
+  //             props: true
+  //           }
+  //         }
+  //       }
+  //     },
+  //     {
+  //       label: 'sample-b:sample-b1',
+  //       to: {
+  //         name: 'sample-b1',
+  //         template: {
+  //           pageKey: 'SampleB',
+  //           parent: 'main',
+  //           route: {
+  //             path: 'sample-b1'
+  //           }
+  //         }
+  //       }
+  //     },
+  //     {
+  //       label: 'sample-c:sample-c1',
+  //       to: {
+  //         name: 'sample-c1',
+  //         template: {
+  //           pageKey: 'SampleC',
+  //           parent: 'main',
+  //           route: {
+  //             path: 'sample-c1'
+  //           }
+  //         }
+  //       }
+  //     }
+  //   ].map((item: any) => item.to)
+  // )
   generateUseRouterStore({
     cacherMethods: {
       getCacheRouters: () => [],

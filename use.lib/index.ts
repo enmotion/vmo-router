@@ -17,13 +17,15 @@ import {
   useLink,
   useRoute,
   parseQuery,
-  stringifyQuery
+  stringifyQuery,
+  NavigationGuardWithThis
 } from 'vue-router'
 import type { Router, RouterOptions, RouteRecordNameGeneric, RouteRecordRaw, NavigationFailure } from 'vue-router'
 import { VmoRouteToRaw } from '@type'
 import { addRouterWithVmoRouterToRaw } from './lib'
 
 export type Methods<META extends Record<string, any>> = {
+  beforeEach: (guard: NavigationGuardWithThis<Router>) => void
   addRouter: (to: VmoRouteToRaw<META>) => void
   push: (to: VmoRouteToRaw<META>) => NavigationFailure | void | undefined
   replace: (to: VmoRouteToRaw<META>) => NavigationFailure | void | undefined
@@ -56,7 +58,18 @@ function createRouter<META extends Record<string, any>>(
 ) {
   const _router: Router = VueRouter.createRouter(options)
   reloadRoutes(reloadRouters)
-
+  /**
+   * 劫持路由守卫的创建过程
+   * @param guard 用户自定义的路由守卫方法
+   */
+  function beforeEach(guard: NavigationGuardWithThis<Router>) {
+    const newguard: NavigationGuardWithThis<undefined> = async (to, from, next) => {
+      //... 劫持守卫的方法内容可以写在这里
+      console.log(to.path)
+      return guard.bind(_router)(to, from, next)
+    }
+    _router.beforeEach(newguard)
+  }
   /**
    * 劫持 push 方法
    * @param to 目标路由
@@ -96,6 +109,7 @@ function createRouter<META extends Record<string, any>>(
           _router[method](to)
         })
       } else {
+        console.log(to)
         _router[method](to)
       }
     } catch (err) {
@@ -124,24 +138,26 @@ function createRouter<META extends Record<string, any>>(
   function removeRoute(name: NonNullable<RouteRecordNameGeneric>) {
     return _router.removeRoute(name)
   }
-  function generateRousteByTreeData() {}
   /**
    * 重载所需动态路由 批量操作
    * @param reloads
    */
   function reloadRoutes(reloads: VmoRouteToRaw<META>[]) {
-    // 先操作没有父路由的，再操作需要父路由的情况
     reloads
       .sort(a => {
-        return a.template?.parent ? 1 : -1
+        return a.template?.parent ? 1 : -1 // 先操作没有父路由的，再操作需要父路由的路由
       })
       .forEach(async item => {
         await addRouter(item)
       })
   }
+
+  function generateRousteByTreeData() {}
   function clearRoutes() {}
+
   // 重注册属性或方法映射
   const _registration: Methods<META> = {
+    beforeEach,
     push,
     replace,
     addRouter,

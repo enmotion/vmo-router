@@ -50,7 +50,7 @@ export default defineComponent({
       {
         label: 'unknow',
         to: {
-          name: 'unknow'
+          name: 'main'
         }
       },
       {
@@ -105,9 +105,23 @@ export default defineComponent({
             }
           }
         }
+      },
+      {
+        label: 'sample-c:sample-c1',
+        to: {
+          name: 'sample-c1',
+          template: {
+            pageKey: 'SampleC',
+            parent: 'main',
+            route: {
+              path: 'sample-c1'
+            }
+          }
+        }
       }
     ]
     function routerTo(item: VmoRouteMenuItemRaw<{ label: string }, Record<string, any>>) {
+      console.log(item.to)
       router.push(item.to)
       routers.value = router?.getRoutes?.() ?? []
       // router.back()

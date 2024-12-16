@@ -8,6 +8,7 @@
 <script lang="ts">
 import { defineComponent, ref } from 'vue'
 import type { PropType } from 'vue'
+import { usePreventBrowserBehavior } from '@lib/lib'
 
 export default defineComponent({
   name: 'sample-b',
@@ -18,6 +19,11 @@ export default defineComponent({
     }
   },
   setup(props, context) {
+    const { isPrevent } = usePreventBrowserBehavior({
+      title: '测试',
+      message: 'AAA'
+    })
+    isPrevent.value = true
     const text = ref('')
     return {
       text
