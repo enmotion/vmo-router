@@ -1,12 +1,25 @@
 import './assets/style.css'
 import { mergeAll } from 'ramda'
 import { createWebHashHistory } from 'vue-router'
-import { createRouter } from '../index'
+import { createRouter, type VmoRouteToRaw } from '../index'
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
-import { generateUseRouterStore } from '@lib/store'
 import PGS from './pages/index'
 import App from './App.vue'
+import { VmoStore } from 'vmo-store'
+
+const store = new VmoStore<{ routers: VmoRouteToRaw<{ keepAlive: boolean; name: string }>[] }>({
+  namespace: 'vmo-router',
+  cryptoKey: 'aaafdasffasd',
+  version: 1,
+  dataProps: {
+    routers: {
+      type: Array,
+      default: () => [],
+      storge: 'localStorage'
+    }
+  }
+})
 console.log(PGS)
 
 try {
@@ -17,67 +30,15 @@ try {
       routes: [mergeAll([PGS.MainPg, { children: [PGS.SampleA, PGS.SampleB] }]), PGS.Error404]
     },
     PGS,
-    [
-      {
-        label: 'sample-a:sample-a1',
-        to: {
-          name: 'sample-a1',
-          params: {
-            name: 'enmotion'
-          },
-          template: {
-            pageKey: 'SampleA',
-            parent: 'main',
-            route: {
-              path: 'sample-a1/test/:name',
-              props: true
-            }
-          }
-        }
+    {
+      pushRouterRaw: to => {
+        const routers = store.getData('routers')
+        routers.push(to)
+        store.setData('routers', routers)
       },
-      {
-        label: 'sample-a:sample-a2',
-        to: {
-          name: 'sample-a2',
-          params: {
-            name: 'enmotion2'
-          },
-          template: {
-            pageKey: 'SampleA',
-            route: {
-              path: 'sample-a2/:name/test',
-              props: true
-            }
-          }
-        }
-      },
-      {
-        label: 'sample-b:sample-b1',
-        to: {
-          name: 'sample-b1',
-          template: {
-            pageKey: 'SampleB',
-            parent: 'main',
-            route: {
-              path: 'sample-b1'
-            }
-          }
-        }
-      },
-      {
-        label: 'sample-c:sample-c1',
-        to: {
-          name: 'sample-c1',
-          template: {
-            pageKey: 'SampleC',
-            parent: 'main',
-            route: {
-              path: 'sample-c1'
-            }
-          }
-        }
-      }
-    ].map((item: any) => item.to)
+      getRouterRaws: () => store.getData('routers'),
+      removeRouterRaw: (name: string) => undefined
+    }
   )
 
   router.beforeEach((to, from, next) => {
@@ -87,79 +48,16 @@ try {
     }
     next()
   })
-  // router.reloadRoutes(
-  //   [
-  //     {
-  //       label: 'sample-a:sample-a1',
-  //       to: {
-  //         name: 'sample-a1',
-  //         params: {
-  //           name: 'enmotion'
-  //         },
-  //         template: {
-  //           pageKey: 'SampleA',
-  //           parent: 'main',
-  //           route: {
-  //             path: 'sample-a1/test/:name',
-  //             props: true
-  //           }
-  //         }
-  //       }
-  //     },
-  //     {
-  //       label: 'sample-a:sample-a2',
-  //       to: {
-  //         name: 'sample-a2',
-  //         params: {
-  //           name: 'enmotion2'
-  //         },
-  //         template: {
-  //           pageKey: 'SampleA',
-  //           route: {
-  //             path: 'sample-a2/:name/test',
-  //             props: true
-  //           }
-  //         }
-  //       }
-  //     },
-  //     {
-  //       label: 'sample-b:sample-b1',
-  //       to: {
-  //         name: 'sample-b1',
-  //         template: {
-  //           pageKey: 'SampleB',
-  //           parent: 'main',
-  //           route: {
-  //             path: 'sample-b1'
-  //           }
-  //         }
-  //       }
-  //     },
-  //     {
-  //       label: 'sample-c:sample-c1',
-  //       to: {
-  //         name: 'sample-c1',
-  //         template: {
-  //           pageKey: 'SampleC',
-  //           parent: 'main',
-  //           route: {
-  //             path: 'sample-c1'
-  //           }
-  //         }
-  //       }
+  router.reloadRoutes(store.getData('routers'))
+  // useRouterStore({
+  //   cacherMethods: {
+  //     getCacheRouters: () => [],
+  //     setCacheRouters: routers => {
+  //       console.log(routers)
   //     }
-  //   ].map((item: any) => item.to)
-  // )
-  generateUseRouterStore({
-    cacherMethods: {
-      getCacheRouters: () => [],
-      setCacheRouters: routers => {
-        console.log(routers)
-      }
-    },
-    preventDialogContent: {},
-    mutipleCatch: true
-  })
+  //   },
+  //   keepAliveName:[]
+  // })
   app.use(router).mount('#app')
   // router.$instance.replace({ name: 'sample-01' })
 } catch (err) {

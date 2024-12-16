@@ -6,7 +6,7 @@
  * 路由全局状态管理器, 基于 pinia 实现
  */
 import { pluck, mergeDeepRight, mergeAll } from 'ramda'
-import { defineStore } from 'pinia'
+import { defineStore, StoreDefinition } from 'pinia'
 import type { VmoRouteToRaw } from '../types/index'
 
 export namespace RouterStore {
@@ -15,42 +15,49 @@ export namespace RouterStore {
     getCacheRouters: () => VmoRouteToRaw<M>[]
   }
   export interface State<M extends Record<string, any>> {
-    preventNavigation: boolean
-    preventDialogContent: { title: string; message: string }
+    navigationDisabled: boolean
     mutipleCatch: boolean // 缓存模式 为ture 时，会缓存所有的路由表，false 只缓存当前路由，此设置可配合 token 机制，做到浏览器开启新标签是否能打开用户获得授权的任意页面，或直接地址跳转；
     dynamicRoutes: VmoRouteToRaw<M>[] // 动态添加路由加载表，作为缓存避免页面刷新时丢失
-    keepAlivePage: string[] // 缓存路由表, 此表只在内存中存在，刷新后会丢弃
+    keepAliveNames: string[] // 缓存路由表, 此表只在内存中存在，刷新后会丢弃
     keepAliveMax?: number
   }
 }
-export function generateUseRouterStore<M extends Record<string, any>>(option: {
-  cacherMethods: RouterStore.CacherMethods<M>
-  preventDialogContent: { title?: string; message?: string }
-  mutipleCatch?: boolean
-}) {
+
+export function useRouterStore<M extends Record<string, any>>(
+  option?: Partial<{
+    cacherMethods: RouterStore.CacherMethods<M>
+    mutipleCatch?: boolean
+    keepAliveName: string[]
+    keepAliveMax: number
+  }>
+) {
   return defineStore('router', {
-    state: (): RouterStore.State<M> => ({
-      preventNavigation: false,
-      preventDialogContent: mergeAll([{ title: 'string', message: 'string' }, option.preventDialogContent]),
-      mutipleCatch: option.mutipleCatch ?? true,
-      dynamicRoutes: option.cacherMethods.getCacheRouters(),
-      keepAlivePage: [],
-      keepAliveMax: 100
-    }),
+    state: (): RouterStore.State<M> =>
+      mergeAll([
+        {
+          navigationDisabled: false,
+          mutipleCatch: option?.mutipleCatch ?? true,
+          dynamicRoutes: option?.cacherMethods?.getCacheRouters?.() ?? [],
+          keepAliveNames: [],
+          keepAliveMax: 100
+        },
+        option ?? {}
+      ]),
     getters: {
-      getPreventNavigation: state => state.preventNavigation,
-      getPreventDialogContent: state => state.preventDialogContent,
+      getNavigationDisabled: state => state.navigationDisabled,
       getMutipleCatch: state => state.mutipleCatch,
       getDynamicRoutes: state => state.dynamicRoutes,
-      getKeepAlivePage: state => state.keepAlivePage,
+      getKeepAliveNames: state => state.keepAliveNames,
       getKeepAliveMax: state => state.keepAliveMax
     },
     actions: {
-      setPreventNavigation(preventNavigation: boolean) {
-        this.preventNavigation = preventNavigation
-      },
-      setPreventDialogContent(preventDialogContent: Partial<{ title: string; message: string }>) {
-        this.preventDialogContent = mergeDeepRight(this.preventDialogContent, preventDialogContent)
+      /**
+       * 设置是否离开页面提示
+       * @param navigationDisabled 是否禁止浏览器默认刷新，返回，导致离开页面的行为
+       * @returns {void}
+       */
+      getNavigationDisabled(navigationDisabled: boolean) {
+        this.navigationDisabled = navigationDisabled
       },
       /**
        * 设置路由缓存最模式， 单页，
@@ -109,17 +116,16 @@ export function generateUseRouterStore<M extends Record<string, any>>(option: {
        * @requires void
        */
       insertKeepAlivePage(name: string) {
-        this.keepAlivePage = Array.from(new Set(this.keepAlivePage).add(name))
+        this.keepAliveNames = Array.from(new Set(this.keepAliveNames).add(name))
       },
-
       /**
        * 移除缓存页面
        * @param name //页面名称
        * @requires void
        */
       removeKeepAlivePage(name: string) {
-        this.keepAlivePage.includes(name) && this.keepAlivePage.splice(this.keepAlivePage.indexOf(name), 1)
+        this.keepAliveNames.includes(name) && this.keepAliveNames.splice(this.keepAliveNames.indexOf(name), 1)
       }
     }
-  })
+  })()
 }

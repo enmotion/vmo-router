@@ -20,7 +20,7 @@ import {
   stringifyQuery,
   NavigationGuardWithThis
 } from 'vue-router'
-import type { Router, RouterOptions, RouteRecordNameGeneric, RouteRecordRaw, NavigationFailure } from 'vue-router'
+import type { Router, RouterOptions, RouteRecordRaw, NavigationFailure } from 'vue-router'
 import { VmoRouteToRaw } from '@type'
 import { addRouterWithVmoRouterToRaw } from './lib'
 
@@ -29,10 +29,9 @@ export type Methods<META extends Record<string, any>> = {
   addRouter: (to: VmoRouteToRaw<META>) => void
   push: (to: VmoRouteToRaw<META>) => NavigationFailure | void | undefined
   replace: (to: VmoRouteToRaw<META>) => NavigationFailure | void | undefined
-  removeRoute: (name: NonNullable<RouteRecordNameGeneric>) => void
+  removeRoute: (name: string) => void
   reloadRoutes: (reloads: VmoRouteToRaw<META>[]) => void
   clearRoutes: () => void
-  generateRousteByTreeData: () => void
 }
 /**
  * 重新定义返回的 Router 实例的类型
@@ -41,6 +40,7 @@ export type Methods<META extends Record<string, any>> = {
 function useRouter<META extends Record<string, any>>(): Router & { $instance: Router } & Methods<META> {
   return VueRouter.useRouter() as Router & { $instance: Router } & Methods<META>
 }
+
 /**
  * 构建劫持代理方法
  * 1. 传递 option 配置 创建一个vue-router的实例
@@ -48,16 +48,20 @@ function useRouter<META extends Record<string, any>>(): Router & { $instance: Ro
  * 3. 返回 vue-router 实例的代理对象，通过代理劫持部分需要重置的方法
  * @param options // 路由表
  * @param template // 模版池对象
- * @param reloadRouters // 需要重载的路由数据
+ * @param store // 挂载的缓存
  * @returns {Router & { $instance: Router }} // 返回代理对象
  */
 function createRouter<META extends Record<string, any>>(
   options: RouterOptions,
   template: Record<string, RouteRecordRaw>,
-  reloadRouters: VmoRouteToRaw<META>[]
+  cacher?: {
+    pushRouterRaw: (to: VmoRouteToRaw<META>) => void // 推入路由缓存
+    removeRouterRaw: (name: string) => void // 移出路由缓存
+    getRouterRaws: () => VmoRouteToRaw<META>[] // 获取当前全部的路由缓存
+  }
 ) {
   const _router: Router = VueRouter.createRouter(options)
-  reloadRoutes(reloadRouters)
+  // reloadRoutes(reloadRouters)
   /**
    * 劫持路由守卫的创建过程
    * @param guard 用户自定义的路由守卫方法
@@ -106,6 +110,7 @@ function createRouter<META extends Record<string, any>>(
       // name 存在，且当前路由中没有此路由的情况，则会进行路由加载, 等待成功后，再进行跳转
       if (!!to.name && !_router.hasRoute(to.name)) {
         addRouter(to).then(() => {
+          cacher?.pushRouterRaw(to) // 添加成功后插入路由缓存，只有非初始化时后添加的路由，才会建立动态缓存 并非keepAlive
           _router[method](to)
         })
       } else {
@@ -135,8 +140,9 @@ function createRouter<META extends Record<string, any>>(
    * @param name
    * @returns
    */
-  function removeRoute(name: NonNullable<RouteRecordNameGeneric>) {
-    return _router.removeRoute(name)
+  function removeRoute(name: string) {
+    cacher?.removeRouterRaw(name) // 移除路由缓存表，并非keepAlive
+    return _router.removeRoute(name as string) // 从路由中移除
   }
   /**
    * 重载所需动态路由 批量操作
@@ -152,8 +158,15 @@ function createRouter<META extends Record<string, any>>(
       })
   }
 
-  function generateRousteByTreeData() {}
-  function clearRoutes() {}
+  function clearRoutes(all: boolean = false) {
+    if (all) {
+      _router.clearRoutes() // 如果是全面清除，则会直接清空所有的路由缓存
+    } else {
+      cacher?.getRouterRaws().forEach(to => {
+        to.name && removeRoute(to.name as string)
+      })
+    }
+  }
 
   // 重注册属性或方法映射
   const _registration: Methods<META> = {
@@ -163,8 +176,7 @@ function createRouter<META extends Record<string, any>>(
     addRouter,
     removeRoute,
     reloadRoutes,
-    clearRoutes,
-    generateRousteByTreeData
+    clearRoutes
   }
   return new Proxy(_router, {
     get(target, prop, receiver) {
