@@ -67,12 +67,7 @@ function createRouter<META extends Record<string, any>>(
     const wrapGuard: NavigationGuardWithThis<undefined> = async (to, from, next) => {
       //... 劫持守卫的方法内容可以写在这里
       if (store?.getRouteToLeaveDisabled) {
-        const confirmed =
-          store?.confirmToLeaveMethod &&
-          (await store?.confirmToLeaveMethod(to.meta as META, {
-            title: '操作提示',
-            message: '你确定要离开该页面吗,还有数据尚未保存？'
-          }))
+        const confirmed = store?.confirmToLeaveMethod && (await store?.confirmToLeaveMethod(from.meta as META))
         store.setRouteToLeaveDisabled(false)
         return confirmed ? guard.bind(_router)(to, from, next) : next(false)
       } else {
@@ -156,13 +151,22 @@ function createRouter<META extends Record<string, any>>(
    * @param reloads
    */
   function reloadRoutes(reloads: VmoRouteToRaw<META>[]) {
-    reloads
-      .sort(a => {
-        return a.template?.parent ? 1 : -1 // 先操作没有父路由的，再操作需要父路由的路由
-      })
-      .forEach(async item => {
-        await addRouter(item)
-      })
+    try {
+      // 先操作没有父路由的，再操作需要父路由的路由
+      const sortedReloads = reloads.sort((a, b) => (a.template?.parent ? 1 : -1) - (b.template?.parent ? 1 : -1))
+      // 使用 Promise.all 并行处理路由加载
+      return Promise.all(sortedReloads.map(item => addRouter(item)))
+        .then(() => {
+          console.log('All routes reloaded successfully')
+        })
+        .catch(err => {
+          console.error('Error reloading routes:', err)
+          throw err
+        })
+    } catch (err) {
+      console.error('Error in reloadRoutes:', err)
+      throw err
+    }
   }
 
   function clearRoutes(all: boolean = false) {

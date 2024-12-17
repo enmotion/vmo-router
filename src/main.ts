@@ -37,9 +37,13 @@ try {
     setter: routes => data.setData('routers', routes),
     getter: () => data.getData('routers')
   })
-  store.setConfirmToLeaveMethod((meta, option) => {
+  store.setConfirmToLeaveMethod(meta => {
     return new Promise((resolve, reject) => {
-      ElMessageBox(option ?? {})
+      console.log(meta)
+      ElMessageBox({
+        title: '操作提示',
+        message: '当前页面未能保存'
+      })
         .then(() => resolve(true))
         .catch(() => reject(false))
     })

@@ -1,6 +1,6 @@
 import type { VmoRouteRecordRaw } from '../../../types/index'
 
-const page: VmoRouteRecordRaw<{ avoidTag: boolean }> = {
+const page: VmoRouteRecordRaw<{ avoidTag: boolean; keepAlive: boolean }> = {
   name: 'error-404',
   path: '/error-404',
   props: true,

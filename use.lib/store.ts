@@ -15,7 +15,7 @@ export namespace RouterStore {
     getter: () => VmoRouteToRaw<M>[]
   }
   export interface State<M extends Record<string, any>> {
-    confirmToLeaveMethod?: (meta: M, option?: Partial<{ title: string; message: string }>) => Promise<boolean> | boolean
+    confirmToLeaveMethod?: (meta: M) => Promise<boolean> | boolean
     cacheMethods?: CacherMethods<M> // 路由缓存的方法
     browserBeforeunloadDisabled: boolean // 浏览器关闭刷行行为是否触发弹窗
     routeToLeaveDisabled: boolean // 是否阻止路由跳转
@@ -30,8 +30,8 @@ export namespace RouterStore {
 export function useRouterStore<M extends Record<string, any>>() {
   return defineStore('router', {
     state: (): RouterStore.State<M> => ({
-      confirmToLeaveMethod: async (meta, option) => {
-        console.log('confirmToLeaveMethod:', meta, option)
+      confirmToLeaveMethod: async meta => {
+        console.log('confirmToLeaveMethod:', meta)
         return true
       },
       cachedRoutes: [],
