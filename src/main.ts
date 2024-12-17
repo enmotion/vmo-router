@@ -30,6 +30,10 @@ console.log(PGS)
 try {
   const app = createApp(App).use(createPinia())
   const store = useRouterStore<Meta>()
+  store.setCacheMethods({
+    setter: routes => data.setData('routers', routes),
+    getter: () => data.getData('routers')
+  })
   const router = createRouter<Meta>(
     {
       history: createWebHashHistory(),
@@ -49,16 +53,6 @@ try {
     }
     next()
   })
-  router.reloadRoutes(data.$store.routers)
-  // useRouterStore({
-  //   cacherMethods: {
-  //     getCacheRouters: () => [],
-  //     setCacheRouters: routers => {
-  //       console.log(routers)
-  //     }
-  //   },
-  //   keepAliveName:[]
-  // })
   app.use(router).mount('#app')
   // router.$instance.replace({ name: 'sample-01' })
 } catch (err) {

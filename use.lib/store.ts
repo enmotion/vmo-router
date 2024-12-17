@@ -38,8 +38,8 @@ export function useRouterStore<M extends Record<string, any>>() {
       getKeepAliveRouteNames: state => state.keepAliveRouteNames,
       getMutipleCatch: state => state.mutipleCatch,
       getNavigationDisabled: state => state.navigationDisabled,
-
-      getKeepAliveMax: state => state.keepAliveMax
+      getKeepAliveMax: state => state.keepAliveMax,
+      getCacheMethod: state => state.cacheMethods
     },
     actions: {
       /**
@@ -87,20 +87,20 @@ export function useRouterStore<M extends Record<string, any>>() {
         this.keepAliveRouteNames = this.keepAliveRouteNames.filter(item => item != name)
       },
       /**
-       * 设置是否离开页面提示
-       * @param navigationDisabled 是否禁止浏览器默认刷新，返回，导致离开页面的行为
-       * @returns {void}
-       */
-      setNavigationDisabled(navigationDisabled: boolean) {
-        this.navigationDisabled = navigationDisabled
-      },
-      /**
        * 设置路由缓存最模式， 单页，
        * @param mutipleCatch 是否开启
        * @returns {void}
        */
       setMutipleCatch(mutipleCatch: boolean) {
         this.mutipleCatch = mutipleCatch
+      },
+      /**
+       * 设置是否离开页面提示
+       * @param navigationDisabled 是否禁止浏览器默认刷新，返回，导致离开页面的行为
+       * @returns {void}
+       */
+      setNavigationDisabled(navigationDisabled: boolean) {
+        this.navigationDisabled = navigationDisabled
       },
       /**
        * 设置路由缓存最大数
@@ -116,7 +116,11 @@ export function useRouterStore<M extends Record<string, any>>() {
        * @returns {void}
        */
       clearDynamicRouters() {
-        this.cachedRoutes = /*store.$data.cachedRoutes = */ []
+        this.cachedRoutes = []
+        this.cacheMethods?.setter(this.cachedRoutes as VmoRouteToRaw<M>[])
+      },
+      setCacheMethods(methods: RouterStore.CacherMethods<M>) {
+        this.cacheMethods = methods
       }
     }
   })()
