@@ -29,7 +29,7 @@
           <vmo-transition
             name="falling"
             mode="out-in"
-            class="grow-1 flex-col overflow-hidden"
+            class="flex-grow flex-col overflow-hidden"
             :duration="{ enter: 300, leave: 200 }"
             :timing="{ enter: 'ease-out', leave: 'ease-in' }">
             <keep-alive :include="store.getKeepAliveRouteNames">

@@ -7,9 +7,6 @@ import dts from 'vite-plugin-dts'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [vue(), dts({ copyDtsFiles: true })],
-  define: {
-    __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: 'false'
-  },
   server: {
     host: '0.0.0.0',
     port: 1980
@@ -22,13 +19,10 @@ export default defineConfig({
       fileName: 'vmo-router'
     },
     rollupOptions: {
-      external: ['vue', 'ramda', 'pinia', 'vue-router'],
+      external: ['vue'],
       output: {
         globals: {
-          vue: 'vue',
-          ramda: 'ramda',
-          pinia: 'pinia',
-          'vue-router': 'vue-router'
+          vue: 'Vue'
         }
       }
     }

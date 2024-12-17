@@ -7,7 +7,7 @@
  */
 import { pluck } from 'ramda'
 import { defineStore } from 'pinia'
-import type { VmoRouteToRaw } from '../types/index'
+import type { VmoRouteToRaw } from '@type'
 
 export namespace RouterStore {
   export type CacherMethods<M extends Record<string, any>> = {
