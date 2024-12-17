@@ -55,7 +55,7 @@ function useRouter<META extends Record<string, any>>(): Router & { $instance: Ro
 function createRouter<META extends Record<string, any>>(
   options: RouterOptions,
   template: Record<string, RouteRecordRaw>,
-  store?: RouterStore.RouterStore<META>
+  store?: RouterStore.PiniaStore<VmoRouteToRaw<META>>
 ) {
   const _router: Router = VueRouter.createRouter(options)
   reloadRoutes((store?.getCachedRoutes ?? []) as VmoRouteToRaw<META>[])

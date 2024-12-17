@@ -10,26 +10,26 @@ import { defineStore } from 'pinia'
 import type { VmoRouteToRaw } from '@type'
 
 export namespace RouterStore {
-  export type CacherMethods<M extends Record<string, any>> = {
-    setter: (route: VmoRouteToRaw<M>[]) => void
-    getter: () => VmoRouteToRaw<M>[]
+  export type CacherMethods<RouteToRaw extends Record<string, any>> = {
+    setter: (route: RouteToRaw[]) => void
+    getter: () => RouteToRaw[]
   }
-  export interface State<M extends Record<string, any>> {
-    confirmToLeaveMethod?: (meta: M) => Promise<boolean> | boolean
-    cacheMethods?: CacherMethods<M> // 路由缓存的方法
+  export interface State<RouteToRaw extends Record<string, any>> {
+    confirmToLeaveMethod?: (meta: RouteToRaw) => Promise<boolean> | boolean
+    cacheMethods?: CacherMethods<RouteToRaw> // 路由缓存的方法
     browserBeforeunloadDisabled: boolean // 浏览器关闭刷行行为是否触发弹窗
     routeToLeaveDisabled: boolean // 是否阻止路由跳转
     mutipleCatch: boolean // 缓存模式 为ture 时，会缓存所有的路由表，false 只缓存当前路由，此设置可配合 token 机制，做到浏览器开启新标签是否能打开用户获得授权的任意页面，或直接地址跳转；
-    cachedRoutes: VmoRouteToRaw<M>[] // 动态添加路由加载表，作为缓存避免页面刷新时丢失
+    cachedRoutes: RouteToRaw[] // 动态添加路由加载表，作为缓存避免页面刷新时丢失
     keepAliveRouteNames: string[] // 缓存路由表, 此表只在内存中存在，刷新后会丢弃
     keepAliveMax?: number
   }
-  export type RouterStore<M extends Record<string, any>> = ReturnType<typeof useRouterStore<M>>
+  export type PiniaStore<RouteToRaw extends Record<string, any>> = ReturnType<typeof useRouterStore<RouteToRaw>>
 }
 
-export function useRouterStore<M extends Record<string, any>>() {
+export function useRouterStore<RouteToRaw extends Record<string, any>>() {
   return defineStore('router', {
-    state: (): RouterStore.State<M> => ({
+    state: (): RouterStore.State<RouteToRaw> => ({
       confirmToLeaveMethod: async meta => {
         console.log('confirmToLeaveMethod:', meta)
         return true
@@ -55,13 +55,13 @@ export function useRouterStore<M extends Record<string, any>>() {
        * 添加路由至路由表缓存
        * @param to
        */
-      insertCachedRoute(to: VmoRouteToRaw<M>) {
-        ;(this.cachedRoutes as VmoRouteToRaw<M>[]) = this.cacheMethods?.getter() ?? []
+      insertCachedRoute(to: RouteToRaw) {
+        ;(this.cachedRoutes as RouteToRaw[]) = this.cacheMethods?.getter() ?? []
         if (!pluck('name', this.cachedRoutes).includes(to.name)) {
           this.mutipleCatch
-            ? (this.cachedRoutes as VmoRouteToRaw<M>[]).push(to as VmoRouteToRaw<M>)
-            : ((this.cachedRoutes as VmoRouteToRaw<M>[]) = [to])
-          this.cacheMethods?.setter(this.cachedRoutes as VmoRouteToRaw<M>[])
+            ? (this.cachedRoutes as RouteToRaw[]).push(to as RouteToRaw)
+            : ((this.cachedRoutes as RouteToRaw[]) = [to])
+          this.cacheMethods?.setter(this.cachedRoutes as RouteToRaw[])
         }
       },
       /**
@@ -69,9 +69,9 @@ export function useRouterStore<M extends Record<string, any>>() {
        * @param name
        */
       removeCachedRoute(name: string) {
-        ;(this.cachedRoutes as VmoRouteToRaw<M>[]) = this.cacheMethods?.getter() ?? []
+        ;(this.cachedRoutes as RouteToRaw[]) = this.cacheMethods?.getter() ?? []
         this.cachedRoutes = this.cachedRoutes.filter(route => route.name != name)
-        this.cacheMethods?.setter(this.cachedRoutes as VmoRouteToRaw<M>[])
+        this.cacheMethods?.setter(this.cachedRoutes as RouteToRaw[])
         // 调用持久化方法
       },
       /**
@@ -134,13 +134,13 @@ export function useRouterStore<M extends Record<string, any>>() {
        */
       clearDynamicRouters() {
         this.cachedRoutes = []
-        this.cacheMethods?.setter(this.cachedRoutes as VmoRouteToRaw<M>[])
+        this.cacheMethods?.setter(this.cachedRoutes as RouteToRaw[])
       },
       /**
        * 设置缓存所需方法
        * @param methods
        */
-      setCacheMethods(methods: RouterStore.CacherMethods<M>) {
+      setCacheMethods(methods: RouterStore.CacherMethods<RouteToRaw>) {
         this.cacheMethods = methods
       },
       /**
@@ -148,7 +148,7 @@ export function useRouterStore<M extends Record<string, any>>() {
        * @param method
        */
       setConfirmToLeaveMethod(
-        method: (meta: M, option?: Partial<{ title: string; message: string }>) => Promise<boolean> | boolean
+        method: (meta: RouteToRaw, option?: Partial<{ title: string; message: string }>) => Promise<boolean> | boolean
       ) {
         this.confirmToLeaveMethod = method
       }

@@ -32,7 +32,7 @@ console.log(PGS)
 
 try {
   const app = createApp(App).use(createPinia())
-  const store = useRouterStore<Meta>()
+  const store = useRouterStore<VmoRouteToRaw<Meta>>()
   store.setCacheMethods({
     setter: routes => data.setData('routers', routes),
     getter: () => data.getData('routers')
