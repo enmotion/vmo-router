@@ -40,7 +40,6 @@ try {
   store.setConfirmToLeaveMethod(meta => {
     return new Promise((resolve, reject) => {
       
-      console.log(meta)
       ElMessageBox({
         title: '操作提示',
         message: '当前页面未能保存'
