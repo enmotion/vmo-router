@@ -10,7 +10,8 @@ import { VmoStore } from 'vmo-store'
 import { useRouterStore } from '@lib/store'
 
 type Meta = {
-  keepAlive: boolean; name: string
+  keepAlive: boolean
+  name: string
 }
 const data = new VmoStore<{ routers: VmoRouteToRaw<Meta>[] }>({
   namespace: 'vmo-router',
@@ -28,35 +29,19 @@ console.log(PGS)
 
 try {
   const app = createApp(App).use(createPinia())
-  const store  = useRouterStore({})
+  const store = useRouterStore<Meta>()
   const router = createRouter<Meta>(
     {
       history: createWebHashHistory(),
       routes: [mergeAll([PGS.MainPg, { children: [PGS.SampleA, PGS.SampleB] }]), PGS.Error404]
     },
     PGS,
-    {
-      pushRouterRaw: to => {
-        const routers = data.$store.routers
-        routers.push(to)
-        data.$store.routers = routers
-      },
-      getRouterRaws: () => data.$store.routers,
-      removeRouterRaw: (name: string) => {
-        const routers = data.$store.routers
-        routers.splice(
-          findIndex(to => to.name == name, data.$store.routers),
-          1
-        )
-        data.$store.routers = routers
-      }
-    }
+    store
   )
-
   router.beforeEach((to, from, next) => {
     console.log(to)
-    if(to.meta.keepAlive){
-      store.setKeepAliveNames(to.name as string)
+    if (to.meta.keepAlive) {
+      store.insertKeepAliveNames(to.name as string)
     }
     if (to.matched.length == 0) {
       next({ name: 'error-404' })

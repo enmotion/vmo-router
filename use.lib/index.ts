@@ -23,8 +23,9 @@ import {
 import type { Router, RouterOptions, RouteRecordRaw, NavigationFailure } from 'vue-router'
 import { VmoRouteToRaw } from '@type'
 import { addRouterWithVmoRouterToRaw } from './lib'
+import type { RouterStore } from './store'
 
-export type Methods<META extends Record<string, any>> = {
+export type ProxyVueRouterMethods<META extends Record<string, any>> = {
   beforeEach: (guard: NavigationGuardWithThis<Router>) => void
   addRouter: (to: VmoRouteToRaw<META>) => void
   push: (to: VmoRouteToRaw<META>) => NavigationFailure | void | undefined
@@ -37,8 +38,8 @@ export type Methods<META extends Record<string, any>> = {
  * 重新定义返回的 Router 实例的类型
  * @returns
  */
-function useRouter<META extends Record<string, any>>(): Router & { $instance: Router } & Methods<META> {
-  return VueRouter.useRouter() as Router & { $instance: Router } & Methods<META>
+function useRouter<META extends Record<string, any>>(): Router & { $instance: Router } & ProxyVueRouterMethods<META> {
+  return VueRouter.useRouter() as Router & { $instance: Router } & ProxyVueRouterMethods<META>
 }
 
 /**
@@ -54,14 +55,10 @@ function useRouter<META extends Record<string, any>>(): Router & { $instance: Ro
 function createRouter<META extends Record<string, any>>(
   options: RouterOptions,
   template: Record<string, RouteRecordRaw>,
-  cacher?: {
-    pushRouterRaw: (to: VmoRouteToRaw<META>) => void // 推入路由缓存
-    removeRouterRaw: (name: string) => void // 移出路由缓存
-    getRouterRaws: () => VmoRouteToRaw<META>[] // 获取当前全部的路由缓存
-  }
+  store?: RouterStore.RouterStore<META>
 ) {
   const _router: Router = VueRouter.createRouter(options)
-  // reloadRoutes(reloadRouters)
+  reloadRoutes((store?.getCachedRoutes ?? []) as VmoRouteToRaw<META>[])
   /**
    * 劫持路由守卫的创建过程
    * @param guard 用户自定义的路由守卫方法
@@ -110,7 +107,7 @@ function createRouter<META extends Record<string, any>>(
       // name 存在，且当前路由中没有此路由的情况，则会进行路由加载, 等待成功后，再进行跳转
       if (!!to.name && !_router.hasRoute(to.name)) {
         addRouter(to).then(() => {
-          cacher?.pushRouterRaw(to) // 添加成功后插入路由缓存，只有非初始化时后添加的路由，才会建立动态缓存 并非keepAlive
+          store?.insertCachedRoute(to) // 添加成功后插入路由缓存，只有非初始化时后添加的路由，才会建立动态缓存 并非keepAlive
           _router[method](to)
         })
       } else {
@@ -141,7 +138,7 @@ function createRouter<META extends Record<string, any>>(
    * @returns
    */
   function removeRoute(name: string) {
-    cacher?.removeRouterRaw(name) // 移除路由缓存表，并非keepAlive
+    store?.removeCachedRoute(name) // 移除路由缓存表，并非keepAlive
     return _router.removeRoute(name as string) // 从路由中移除
   }
   /**
@@ -162,14 +159,14 @@ function createRouter<META extends Record<string, any>>(
     if (all) {
       _router.clearRoutes() // 如果是全面清除，则会直接清空所有的路由缓存
     } else {
-      cacher?.getRouterRaws().forEach(to => {
+      store?.getCachedRoutes?.forEach?.(to => {
         to.name && removeRoute(to.name as string)
       })
     }
   }
 
   // 重注册属性或方法映射
-  const _registration: Methods<META> = {
+  const _registration: ProxyVueRouterMethods<META> = {
     beforeEach,
     push,
     replace,
@@ -180,15 +177,15 @@ function createRouter<META extends Record<string, any>>(
   }
   return new Proxy(_router, {
     get(target, prop, receiver) {
-      if (!_registration?.[prop as keyof Methods<META>]) {
+      if (!_registration?.[prop as keyof ProxyVueRouterMethods<META>]) {
         /* 如果当前 属性或方法未被重注册，则返回 实例或者实例方法 */
         return prop == '$instance' ? target : Reflect.get(target, prop, receiver)
       } else {
         /* 返回当前注册对象 */
-        return _registration[prop as keyof Methods<META>]
+        return _registration[prop as keyof ProxyVueRouterMethods<META>]
       }
     }
-  }) as Router & { $instance: Router } & Methods<META>
+  }) as Router & { $instance: Router } & ProxyVueRouterMethods<META>
 }
 // 动态导出所有属性和方法
 export {

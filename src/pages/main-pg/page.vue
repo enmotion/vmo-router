@@ -17,12 +17,16 @@
       </div>
       <div class="flex flex-col flex-grow bg-gray-950">
         <div class="text-xs text-white flex-row flex">
-          <span v-for="(item , index) in store.getKeepAliveNames" :key="item+index" class="h-[30px] px-[20px] flex flex-row items-center border cursor-pointer hover:bg-red-600" @click="store.removeKeepAliveNames(item)">
+          <span
+            v-for="(item, index) in store.getKeepAliveRouteNames"
+            :key="item + index"
+            class="h-[30px] px-[20px] flex flex-row items-center border cursor-pointer hover:bg-red-600"
+            @click="store.removeKeepAliveNames(item)">
             {{ item }}
           </span>
         </div>
         <router-view v-slot="{ Component }">
-          <keep-alive :include="store.getKeepAliveNames">
+          <keep-alive :include="store.getKeepAliveRouteNames">
             <component :is="Component"></component>
           </keep-alive>
         </router-view>
@@ -44,7 +48,7 @@ import { RouteRecord } from 'vue-router'
 import { defineComponent, computed, ref, KeepAlive } from 'vue'
 import { VmoRouteMenuItemRaw } from '@type'
 import { useRouter, useRoute } from '@lib'
-import { useRouterStore } from '@lib/store';
+import { useRouterStore } from '@lib/store'
 
 // import type { PropType } from 'vue'
 
@@ -52,7 +56,7 @@ export default defineComponent({
   name: 'main-pg',
   setup(props, context) {
     const router = useRouter()
-    const store = useRouterStore();
+    const store = useRouterStore()
     const routers = ref(router?.getRoutes?.() ?? ([] as RouteRecord[]))
     const menu: VmoRouteMenuItemRaw<{ label: string }, Record<string, any>>[] = [
       {
@@ -97,8 +101,8 @@ export default defineComponent({
             route: {
               path: 'sample-a2/:name/test',
               props: true,
-              meta:{
-                keepAlive:false
+              meta: {
+                keepAlive: false
               }
             }
           }

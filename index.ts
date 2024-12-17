@@ -1,5 +1,5 @@
 import { createRouter } from '@lib/index'
-import type { VmoRouteRecordRaw, VmoRouteToRaw, VmoRouteMenuItemRaw } from '@type'
+import type { Lazy, VmoRouteRecordRaw, VmoRouteToRaw, VmoRouteMenuItemRaw } from '@type'
 
 /**
  * createRouter 创建路由的方法
@@ -13,4 +13,4 @@ export { createRouter }
  * VmoRouteMenuItemRaw<ITEM extend Reocrd<string,any>,META extends Record<string,any>>
  * 给菜单使用
  */
-export type { VmoRouteRecordRaw, VmoRouteToRaw, VmoRouteMenuItemRaw }
+export type { Lazy, VmoRouteRecordRaw, VmoRouteToRaw, VmoRouteMenuItemRaw }
