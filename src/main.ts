@@ -39,6 +39,7 @@ try {
   })
   store.setConfirmToLeaveMethod(meta => {
     return new Promise((resolve, reject) => {
+      
       console.log(meta)
       ElMessageBox({
         title: '操作提示',

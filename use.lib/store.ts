@@ -14,8 +14,9 @@ export namespace RouterStore {
     setter: (route: RouteToRaw[]) => void
     getter: () => RouteToRaw[]
   }
-  export interface State<RouteToRaw extends Record<string, any>> {
-    confirmToLeaveMethod?: (meta: RouteToRaw) => Promise<boolean> | boolean
+  export type ExtractRouteInfoType<T> = T extends VmoRouteToRaw<infer M> ? M : never;
+  export interface State<RouteToRaw extends VmoRouteToRaw<Record<string, any>>> {
+    confirmToLeaveMethod?: (meta:RouterStore.ExtractRouteInfoType<RouteToRaw>) => Promise<boolean> | boolean
     cacheMethods?: CacherMethods<RouteToRaw> // 路由缓存的方法
     browserBeforeunloadDisabled: boolean // 浏览器关闭刷行行为是否触发弹窗
     routeToLeaveDisabled: boolean // 是否阻止路由跳转
@@ -148,7 +149,7 @@ export function useRouterStore<RouteToRaw extends Record<string, any>>() {
        * @param method
        */
       setConfirmToLeaveMethod(
-        method: (meta: RouteToRaw, option?: Partial<{ title: string; message: string }>) => Promise<boolean> | boolean
+        method: (meta: RouterStore.ExtractRouteInfoType<RouteToRaw>) => Promise<boolean> | boolean
       ) {
         this.confirmToLeaveMethod = method
       }
