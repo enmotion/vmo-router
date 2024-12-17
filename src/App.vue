@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { usePreventBrowserBehavior } from '@lib/lib'
-usePreventBrowserBehavior()
+usePreventBrowserBehavior(false)
 </script>
 
 <template>

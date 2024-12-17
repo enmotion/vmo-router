@@ -15,12 +15,10 @@ export namespace RouterStore {
     getter: () => VmoRouteToRaw<M>[]
   }
   export interface State<M extends Record<string, any>> {
-    preventNavigationMethod?: (
-      navigationDisabled: boolean,
-      option?: Partial<{ title: string; message: string }>
-    ) => Promise<boolean> | boolean
+    confirmToLeaveMethod?: (meta: M, option?: Partial<{ title: string; message: string }>) => Promise<boolean> | boolean
     cacheMethods?: CacherMethods<M> // 路由缓存的方法
-    navigationDisabled: boolean // 是否阻止路由跳转
+    browserBeforeunloadDisabled: boolean // 浏览器关闭刷行行为是否触发弹窗
+    routeToLeaveDisabled: boolean // 是否阻止路由跳转
     mutipleCatch: boolean // 缓存模式 为ture 时，会缓存所有的路由表，false 只缓存当前路由，此设置可配合 token 机制，做到浏览器开启新标签是否能打开用户获得授权的任意页面，或直接地址跳转；
     cachedRoutes: VmoRouteToRaw<M>[] // 动态添加路由加载表，作为缓存避免页面刷新时丢失
     keepAliveRouteNames: string[] // 缓存路由表, 此表只在内存中存在，刷新后会丢弃
@@ -32,23 +30,25 @@ export namespace RouterStore {
 export function useRouterStore<M extends Record<string, any>>() {
   return defineStore('router', {
     state: (): RouterStore.State<M> => ({
-      preventNavigationMethod: async (navigationDisabled, option) => {
-        console.log(navigationDisabled, option)
-        return navigationDisabled
+      confirmToLeaveMethod: async (meta, option) => {
+        console.log('confirmToLeaveMethod:', meta, option)
+        return true
       },
       cachedRoutes: [],
       keepAliveRouteNames: [],
       mutipleCatch: true,
-      navigationDisabled: false
+      routeToLeaveDisabled: false,
+      browserBeforeunloadDisabled: false
     }),
     getters: {
       getCachedRoutes: state => state.cacheMethods?.getter() ?? state.cachedRoutes,
       getKeepAliveRouteNames: state => state.keepAliveRouteNames,
       getMutipleCatch: state => state.mutipleCatch,
-      getNavigationDisabled: state => state.navigationDisabled,
+      getBrowserBeforeunloadDisabled: state => state.browserBeforeunloadDisabled,
+      getRouteToLeaveDisabled: state => state.routeToLeaveDisabled,
       getKeepAliveMax: state => state.keepAliveMax,
       getCacheMethod: state => state.cacheMethods,
-      getPreventNavigationMethod: state => state.preventNavigationMethod
+      getPreventNavigationMethod: state => state.confirmToLeaveMethod
     },
     actions: {
       /**
@@ -105,11 +105,19 @@ export function useRouterStore<M extends Record<string, any>>() {
       },
       /**
        * 设置是否离开页面提示
-       * @param navigationDisabled 是否禁止浏览器默认刷新，返回，导致离开页面的行为
+       * @param browserBeforeunloadDisabled 是否禁止浏览器默认刷新，返回，导致离开页面的行为
        * @returns {void}
        */
-      setNavigationDisabled(navigationDisabled: boolean) {
-        this.navigationDisabled = navigationDisabled
+      setBrowserBeforeunloadDisabled(browserBeforeunloadDisabled: boolean) {
+        this.browserBeforeunloadDisabled = browserBeforeunloadDisabled
+      },
+      /**
+       * 设置触发路由离开提示
+       * @param routeToLeaveDisabled 设置触发路由离开是否提示
+       * @returns {void}
+       */
+      setRouteToLeaveDisabled(routeToLeaveDisabled: boolean) {
+        this.routeToLeaveDisabled = routeToLeaveDisabled
       },
       /**
        * 设置路由缓存最大数
@@ -139,13 +147,10 @@ export function useRouterStore<M extends Record<string, any>>() {
        * 设置跳转阻拦器方法
        * @param method
        */
-      setPreventNavigationMethod(
-        method: (
-          navigationDisabled: boolean,
-          option?: Partial<{ title: string; message: string }>
-        ) => Promise<boolean> | boolean
+      setConfirmToLeaveMethod(
+        method: (meta: M, option?: Partial<{ title: string; message: string }>) => Promise<boolean> | boolean
       ) {
-        this.preventNavigationMethod = method
+        this.confirmToLeaveMethod = method
       }
     }
   })()

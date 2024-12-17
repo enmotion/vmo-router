@@ -147,8 +147,9 @@ async function _routePageComponentLoader(this: any, component: any) {
  * 2.在页面上就可以通过 ../state useRouterStateStore() 返回的 store 来进行是否阻拦跳转属性的操作 getPreventNavigation setPreventNavigation
  * 3.在路由中，需要在跳转前 根据 store.getPreventNavigation 的状态作一次跳转提示 提示内容也可动态传递 通过 store.preventDialogContent 进行设置即可完成；
  */
-export function usePreventBrowserBehavior(message: string = '') {
+export function usePreventBrowserBehavior(browserBeforeunloadDisabled: boolean = true, message: string = '') {
   const store = useRouterStore()
+  store.setBrowserBeforeunloadDisabled(browserBeforeunloadDisabled)
   const instance = getCurrentInstance()
   if (instance) {
     onBeforeMount(() => {
@@ -159,7 +160,7 @@ export function usePreventBrowserBehavior(message: string = '') {
     })
   }
   function preventNav(event: BeforeUnloadEvent) {
-    if (!store.getNavigationDisabled) return
+    if (!store.getBrowserBeforeunloadDisabled && !store.getRouteToLeaveDisabled) return
     event.preventDefault()
     return message
   }

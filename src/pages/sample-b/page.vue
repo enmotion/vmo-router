@@ -13,7 +13,6 @@
 import { defineComponent, ref } from 'vue'
 import type { PropType } from 'vue'
 import { useRouterStore } from '@lib/store'
-import { ElMessageBox } from 'element-plus'
 
 export default defineComponent({
   name: 'sample-b',
@@ -25,26 +24,11 @@ export default defineComponent({
   },
   setup(props, context) {
     const store = useRouterStore()
-    store.setPreventNavigationMethod((disabled, option) => {
-      return disabled
-        ? new Promise((resolve, reject) => {
-            ElMessageBox(option!)
-              .then(res => {
-                resolve(false)
-              })
-              .catch(err => {
-                reject(true)
-              })
-          })
-        : false
-    })
     const isPrevent = ref(false)
     const text = ref('')
     function input(str: string) {
       isPrevent.value = str == 'mod'
-      store.setNavigationDisabled(isPrevent.value)
-      // isPrevent.value = str == 'enmotion'
-      // store.setNavigationDisabled(isPrevent.value)
+      store.setRouteToLeaveDisabled(isPrevent.value)
     }
     return {
       text,

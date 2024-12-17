@@ -1,5 +1,5 @@
 import './assets/style.css'
-import { mergeAll, findIndex } from 'ramda'
+import { mergeAll } from 'ramda'
 import { createWebHashHistory } from 'vue-router'
 import { createRouter, type VmoRouteToRaw } from '../index'
 import { createApp } from 'vue'
@@ -10,6 +10,7 @@ import PGS from './pages/index'
 import App from './App.vue'
 import { VmoStore } from 'vmo-store'
 import { useRouterStore } from '@lib/store'
+import { ElMessageBox } from 'element-plus'
 
 type Meta = {
   keepAlive: boolean
@@ -35,6 +36,13 @@ try {
   store.setCacheMethods({
     setter: routes => data.setData('routers', routes),
     getter: () => data.getData('routers')
+  })
+  store.setConfirmToLeaveMethod((meta, option) => {
+    return new Promise((resolve, reject) => {
+      ElMessageBox(option ?? {})
+        .then(() => resolve(true))
+        .catch(() => reject(false))
+    })
   })
   const router = createRouter<Meta>(
     {
