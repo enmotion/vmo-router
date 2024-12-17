@@ -19,10 +19,14 @@ export default defineConfig({
       fileName: 'vmo-router'
     },
     rollupOptions: {
-      external: ['vue'],
+      external: ['vue','vue-router','pinia','ramda','vmo-store'],
       output: {
         globals: {
-          vue: 'Vue'
+          vue: 'vue',          
+          'pinia':'pinia',
+          'ramda':'ramda',
+          'vue-router':'vue-router',
+          'vmo-store':'vmo-store'
         }
       }
     }
