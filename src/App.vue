@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { usePreventBrowserBehavior } from '@lib/lib'
+import { usePreventBrowserBeforeunloadBehavior } from '@lib/lib'
 import VmoTransition from './componets/transition/vmo-transition/index.cp'
-usePreventBrowserBehavior(false)
+usePreventBrowserBeforeunloadBehavior(false)
 </script>
 
 <template>
