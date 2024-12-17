@@ -4,6 +4,8 @@ import { createWebHashHistory } from 'vue-router'
 import { createRouter, type VmoRouteToRaw } from '../index'
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
+import 'element-plus/dist/index.css'
+
 import PGS from './pages/index'
 import App from './App.vue'
 import { VmoStore } from 'vmo-store'

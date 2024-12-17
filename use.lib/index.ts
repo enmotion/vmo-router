@@ -63,13 +63,21 @@ function createRouter<META extends Record<string, any>>(
    * 劫持路由守卫的创建过程
    * @param guard 用户自定义的路由守卫方法
    */
-  function beforeEach(guard: NavigationGuardWithThis<Router>) {
-    const newguard: NavigationGuardWithThis<undefined> = async (to, from, next) => {
+  async function beforeEach(guard: NavigationGuardWithThis<Router>) {
+    const wrapGuard: NavigationGuardWithThis<undefined> = async (to, from, next) => {
       //... 劫持守卫的方法内容可以写在这里
       console.log(to.path)
-      return guard.bind(_router)(to, from, next)
+      store?.getNavigationDisabled
+      const prevent =
+        store?.preventNavigationMethod &&
+        (await store?.preventNavigationMethod(store.getNavigationDisabled, {
+          title: '操作提示',
+          message: '你确定要离开该页面吗,还有数据尚未保存？'
+        }))
+      !prevent && store?.setNavigationDisabled(false)
+      return prevent ? next(false) : guard.bind(_router)(to, from, next)
     }
-    _router.beforeEach(newguard)
+    _router.beforeEach(await wrapGuard)
   }
   /**
    * 劫持 push 方法

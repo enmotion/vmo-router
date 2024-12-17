@@ -1,14 +1,19 @@
 <template>
   <div class="flex-col flex text-white p-[20px] text-xs flex-grow">
-    <span class="text-base mb-[10px]">sample-b:{{ name }}</span>
-    <input v-model="text" class="bg-[#00000055] p-[10px] w-full rounded border border-gray-800 outline-none" />
+    <span class="text-base mb-[10px]">sample-b:{{ name }} {{ text }}</span>
+    {{ isPrevent }}
+    <input
+      v-model="text"
+      class="bg-[#00000055] p-[10px] w-full rounded border border-gray-800 outline-none"
+      @input="input(text)" />
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue'
 import type { PropType } from 'vue'
-import { usePreventBrowserBehavior } from '@lib/lib'
+import { useRouterStore } from '@lib/store'
+import { ElMessageBox } from 'element-plus'
 
 export default defineComponent({
   name: 'sample-b',
@@ -19,14 +24,32 @@ export default defineComponent({
     }
   },
   setup(props, context) {
-    const { isPrevent } = usePreventBrowserBehavior({
-      title: '测试',
-      message: 'AAA'
+    const store = useRouterStore()
+    store.setPreventNavigationMethod((disabled, option) => {
+      return disabled
+        ? new Promise((resolve, reject) => {
+            ElMessageBox(option!)
+              .then(res => {
+                resolve(false)
+              })
+              .catch(err => {
+                reject(true)
+              })
+          })
+        : false
     })
-    isPrevent.value = true
+    const isPrevent = ref(false)
     const text = ref('')
+    function input(str: string) {
+      isPrevent.value = str == 'mod'
+      store.setNavigationDisabled(isPrevent.value)
+      // isPrevent.value = str == 'enmotion'
+      // store.setNavigationDisabled(isPrevent.value)
+    }
     return {
-      text
+      text,
+      isPrevent,
+      input
     }
   }
 })

@@ -15,6 +15,10 @@ export namespace RouterStore {
     getter: () => VmoRouteToRaw<M>[]
   }
   export interface State<M extends Record<string, any>> {
+    preventNavigationMethod?: (
+      navigationDisabled: boolean,
+      option?: Partial<{ title: string; message: string }>
+    ) => Promise<boolean> | boolean
     cacheMethods?: CacherMethods<M> // 路由缓存的方法
     navigationDisabled: boolean // 是否阻止路由跳转
     mutipleCatch: boolean // 缓存模式 为ture 时，会缓存所有的路由表，false 只缓存当前路由，此设置可配合 token 机制，做到浏览器开启新标签是否能打开用户获得授权的任意页面，或直接地址跳转；
@@ -28,6 +32,10 @@ export namespace RouterStore {
 export function useRouterStore<M extends Record<string, any>>() {
   return defineStore('router', {
     state: (): RouterStore.State<M> => ({
+      preventNavigationMethod: async (navigationDisabled, option) => {
+        console.log(navigationDisabled, option)
+        return navigationDisabled
+      },
       cachedRoutes: [],
       keepAliveRouteNames: [],
       mutipleCatch: true,
@@ -39,7 +47,8 @@ export function useRouterStore<M extends Record<string, any>>() {
       getMutipleCatch: state => state.mutipleCatch,
       getNavigationDisabled: state => state.navigationDisabled,
       getKeepAliveMax: state => state.keepAliveMax,
-      getCacheMethod: state => state.cacheMethods
+      getCacheMethod: state => state.cacheMethods,
+      getPreventNavigationMethod: state => state.preventNavigationMethod
     },
     actions: {
       /**
@@ -119,8 +128,24 @@ export function useRouterStore<M extends Record<string, any>>() {
         this.cachedRoutes = []
         this.cacheMethods?.setter(this.cachedRoutes as VmoRouteToRaw<M>[])
       },
+      /**
+       * 设置缓存所需方法
+       * @param methods
+       */
       setCacheMethods(methods: RouterStore.CacherMethods<M>) {
         this.cacheMethods = methods
+      },
+      /**
+       * 设置跳转阻拦器方法
+       * @param method
+       */
+      setPreventNavigationMethod(
+        method: (
+          navigationDisabled: boolean,
+          option?: Partial<{ title: string; message: string }>
+        ) => Promise<boolean> | boolean
+      ) {
+        this.preventNavigationMethod = method
       }
     }
   })()
