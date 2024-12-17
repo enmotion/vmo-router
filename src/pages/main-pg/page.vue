@@ -26,13 +26,21 @@
           </span>
         </div>
         <router-view v-slot="{ Component }">
-          <keep-alive :include="store.getKeepAliveRouteNames">
-            <component :is="Component"></component>
-          </keep-alive>
+          <vmo-transition
+            name="falling"
+            mode="out-in"
+            class="grow-1 flex-col overflow-hidden"
+            :duration="{ enter: 300, leave: 200 }"
+            :timing="{ enter: 'ease-out', leave: 'ease-in' }">
+            <keep-alive :include="store.getKeepAliveRouteNames">
+              <component :is="Component"></component>
+            </keep-alive>
+          </vmo-transition>
         </router-view>
       </div>
       <div class="flex flex-col w-[200px] bg-gray-900 text-xs border-l border-gray-800 text-white">
         <!-- {{ computedAllRouters }} -->
+
         <span
           v-for="(router, index) in routers"
           :key="index"
@@ -49,11 +57,13 @@ import { defineComponent, computed, ref, KeepAlive } from 'vue'
 import { VmoRouteMenuItemRaw } from '@type'
 import { useRouter, useRoute } from '@lib'
 import { useRouterStore } from '@lib/store'
+import VmoTransition from '../../componets/transition/vmo-transition/index.cp'
 
 // import type { PropType } from 'vue'
 
 export default defineComponent({
   name: 'main-pg',
+  components: { VmoTransition },
   setup(props, context) {
     const router = useRouter()
     const store = useRouterStore()

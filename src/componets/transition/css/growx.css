@@ -1,0 +1,47 @@
+.aq-transition-vessel>.growx-enter-from,
+.aq-transition-vessel>.growx-enter-active,
+.aq-transition-vessel>.growx-enter-to,
+.aq-transition-vessel>.growx-leave-from,
+.aq-transition-vessel>.growx-leave-active,
+.aq-transition-vessel>.growx-leave-to{
+  position:var(--cellposition) !important;
+}
+.aq-transition-vessel>.growx-enter-from,
+.aq-transition-vessel>.growx-leave-to {
+  overflow: hidden;
+  max-width:0px !important;
+}
+.aq-transition-vessel>.growx-enter-to,
+.aq-transition-vessel>.growx-leave-from{
+  max-width:var(--orgSizeWidth) !important;
+}
+.aq-transition-vessel>.growx-enter-active{
+  transition: all var(--enter) var(--entertiming);
+}
+.aq-transition-vessel>.growx-leave-active{
+  transition: all var(--leave) var(--leavetiming);
+}
+
+/* 1. 声明过渡效果 */
+.aq-transition-group>.container>.growx-move{
+  transition: all var(--enter) var(--entertiming);
+}
+.aq-transition-group>.container>.growx-enter-active{
+  transition: all var(--enter) var(--entertiming);
+}
+.aq-transition-group>.container>.growx-leave-active {
+  transition: all var(--leave) var(--leavetiming);
+}
+
+/* 2. 声明进入和离开的状态 */
+.aq-transition-group>.container>.growx-enter-from,
+.aq-transition-group .container .growx-leave-to {
+  opacity: 0;
+  transform: scaleX(0.01) translate(0px, 0);
+}
+
+/* 3. 确保离开的项目被移除出了布局流
+      以便正确地计算移动时的动画效果。 */
+.aq-transition-group>.container>.growx-leave-active {
+  position: absolute;
+}

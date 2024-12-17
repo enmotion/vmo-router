@@ -1,0 +1,42 @@
+.aq-transition-vessel>.zoomin-enter-from,
+.aq-transition-vessel>.zoomin-enter-active,
+.aq-transition-vessel>.zoomin-enter-to,
+.aq-transition-vessel>.zoomin-leave-from,
+.aq-transition-vessel>.zoomin-leave-active,
+.aq-transition-vessel>.zoomin-leave-to{
+  position:var(--cellposition) !important;
+}
+.aq-transition-vessel>.zoomin-enter-from{
+  transform: scale(0.95);
+  opacity: 0;
+}
+.aq-transition-vessel>.zoomin-leave-to{
+  transform: scale(1.05);
+  opacity: 0;
+}
+.aq-transition-vessel>.zoomin-enter-active{
+  transition: all var(--enter) var(--entertiming);
+}
+.aq-transition-vessel>.zoomin-leave-active{
+  transition: all var(--leave) var(--leavetiming);
+}
+
+/* transition-group */
+.aq-transition-group>.container>.zoomin-move,
+.aq-transition-group>.container>.zoomin-enter-active{
+  transition: all var(--enter) var(--entertiming);
+}
+.aq-transition-group>.container>.zoomin-leave-active {
+  transition: all var(--leave) var(--leavetiming);
+}
+.aq-transition-group>.container>.zoomin-enter-from{
+  transform: scale(0.8);
+  opacity: 0;
+}
+.aq-transition-group .container .zoomin-leave-to {
+  transform: scale(0.8);
+  opacity: 0;
+}
+.aq-transition-group>.container>.zoomin-leave-active {
+  position: absolute;
+}

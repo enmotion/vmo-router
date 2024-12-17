@@ -1,0 +1,39 @@
+.aq-transition-vessel>.scrollright-enter-from,
+.aq-transition-vessel>.scrollright-enter-active,
+.aq-transition-vessel>.scrollright-enter-to,
+.aq-transition-vessel>.scrollright-leave-from,
+.aq-transition-vessel>.scrollright-leave-active,
+.aq-transition-vessel>.scrollright-leave-to{
+  position:var(--cellposition) !important;
+}
+.aq-transition-vessel>.scrollright-enter-from {
+  transform: translateX(-110%);
+  opacity: 0;
+}
+.aq-transition-vessel>.scrollright-leave-to {
+  transform: translateX(110%);
+  opacity: 0;
+}
+.aq-transition-vessel>.scrollright-enter-active{
+  transition: all var(--enter) var(--entertiming);
+}
+.aq-transition-vessel>.scrollright-leave-active{
+  transition: all var(--leave) var(--leavetiming);
+}
+/* transition-group */
+.aq-transition-group>.container>.scrollright-move,
+.aq-transition-group>.container>.scrollright-enter-active{
+  transition: all var(--enter) var(--entertiming);
+}
+.aq-transition-group>.container>.scrollright-leave-active {
+  transition: all var(--leave) var(--leavetiming);
+}
+.aq-transition-group>.container>.scrollright-enter-from,
+.aq-transition-group>.container>.scrollright-leave-to {
+  z-index: 2;
+  opacity: 0;
+  transform: translateX(50%);
+}
+.aq-transition-group>.container>.scrollright-leave-active {
+  position: absolute;
+}

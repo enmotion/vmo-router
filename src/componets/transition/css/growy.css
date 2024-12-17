@@ -1,0 +1,41 @@
+.aq-transition-vessel>.growy-enter-from,
+.aq-transition-vessel>.growy-enter-active,
+.aq-transition-vessel>.growy-enter-to,
+.aq-transition-vessel>.growy-leave-from,
+.aq-transition-vessel>.growy-leave-active,
+.aq-transition-vessel>.growy-leave-to{
+  position:var(--cellposition) !important;
+}
+/* transition */
+.aq-transition-vessel>.growy-enter-from,
+.aq-transition-vessel>.growy-leave-to {
+  overflow: hidden;
+  max-height:0px !important;
+}
+.aq-transition-vessel>.growy-enter-to,
+.aq-transition-vessel>.growy-leave-from{
+  max-height:var(--orgSizeHeight) !important;
+}
+.aq-transition-vessel>.growy-enter-active{
+  transition: all var(--enter) var(--entertiming);
+}
+.aq-transition-vessel>.growy-leave-active{
+  transition: all var(--leave) var(--leavetiming);
+}
+
+/* transition-group */
+.aq-transition-group>.container>.growy-move,
+.aq-transition-group>.container>.growy-enter-active{
+  transition: all var(--enter) var(--entertiming);
+}
+.aq-transition-group>.container>.growy-leave-active {
+  transition: all var(--leave) var(--leavetiming);
+}
+.aq-transition-group>.container>.growy-enter-from,
+.aq-transition-group>.container>.growy-leave-to {
+  opacity: 0;
+  transform: scaleY(0.01) translate(0px, 0);
+}
+.aq-transition-group>.container>.growy-leave-active {
+  position: absolute;
+}

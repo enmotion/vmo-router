@@ -1,0 +1,38 @@
+.aq-transition-vessel>.flipy-enter-from,
+.aq-transition-vessel>.flipy-enter-active,
+.aq-transition-vessel>.flipy-enter-to,
+.aq-transition-vessel>.flipy-leave-from,
+.aq-transition-vessel>.flipy-leave-active,
+.aq-transition-vessel>.flipy-leave-to{
+  position:var(--cellposition) !important;
+}
+.aq-transition-vessel>.flipy-enter-from{
+  transform: rotateY(-90deg);
+  opacity: 0;
+}
+.aq-transition-vessel>.flipy-leave-to {
+  transform: rotateY(90deg);
+  opacity: 0;
+}
+.aq-transition-vessel>.flipy-enter-active{
+  transition: all var(--enter) var(--entertiming);
+}
+.aq-transition-vessel>.flipy-leave-active{
+  transition: all var(--leave) var(--leavetiming);
+}
+/* transition-group */
+.aq-transition-group>.container>.flipy-move,
+.aq-transition-group>.container>.flipy-enter-active{
+  transition: all var(--enter) var(--entertiming);
+}
+.aq-transition-group>.container>.flipy-leave-active {
+  transition: all var(--leave) var(--leavetiming);
+}
+.aq-transition-group>.container>.flipy-enter-from,
+.aq-transition-group .container .flipy-leave-to{
+  transform: rotateY(-90deg);
+  opacity: 0;
+}
+.aq-transition-group>.container>.flipy-leave-active {
+  position: absolute;
+}

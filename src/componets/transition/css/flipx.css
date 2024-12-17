@@ -1,0 +1,38 @@
+.aq-transition-vessel>.flipx-enter-from,
+.aq-transition-vessel>.flipx-enter-active,
+.aq-transition-vessel>.flipx-enter-to,
+.aq-transition-vessel>.flipx-leave-from,
+.aq-transition-vessel>.flipx-leave-active,
+.aq-transition-vessel>.flipx-leave-to{
+  position:var(--cellposition) !important;
+}
+.aq-transition-vessel>.flipx-enter-from{
+  transform: rotateX(-90deg);
+  opacity: 0;
+}
+.aq-transition-vessel>.flipx-leave-to {
+  transform: rotateX(90deg);
+  opacity: 0;
+}
+.aq-transition-vessel>.flipx-enter-active{
+  transition: all var(--enter) var(--entertiming);
+}
+.aq-transition-vessel>.flipx-leave-active{
+  transition: all var(--leave) var(--leavetiming);
+}
+/* transition-group */
+.aq-transition-group>.container>.flipx-move,
+.aq-transition-group>.container>.flipx-enter-active{
+  transition: all var(--enter) var(--entertiming);
+}
+.aq-transition-group>.container>.flipx-leave-active {
+  transition: all var(--leave) var(--leavetiming);
+}
+.aq-transition-group>.container>.flipx-enter-from,
+.aq-transition-group .container .flipx-leave-to{
+  transform: rotateX(-90deg);
+  opacity: 0;
+}
+.aq-transition-group>.container>.flipx-leave-active {
+  position: absolute;
+}
