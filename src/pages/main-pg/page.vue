@@ -67,6 +67,7 @@ export default defineComponent({
   setup(props, context) {
     const router = useRouter()
     const store = useRouterStore()
+    store.setKeepAliveMax(3)
     const routers = ref(router?.getRoutes?.() ?? ([] as RouteRecord[]))
     const menu: VmoRouteMenuItemRaw<{ label: string }, Record<string, any>>[] = [
       {

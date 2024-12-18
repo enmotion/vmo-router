@@ -2,7 +2,7 @@
  * @Author: enmotion
  * @Date: 2023-11-09 10:36:24
  * @Last Modified by: enmotion
- * @Last Modified time: 2024-12-16 09:09:30
+ * @Last Modified time: 2024-12-18 10:07:46
  * 路由全局状态管理器, 基于 pinia 实现
  */
 import { pluck } from 'ramda'
@@ -14,9 +14,9 @@ export namespace RouterStore {
     setter: (route: RouteToRaw[]) => void
     getter: () => RouteToRaw[]
   }
-  export type ExtractRouteInfoType<T> = T extends VmoRouteToRaw<infer M> ? M : never;
+  export type ExtractRouteInfoType<T> = T extends VmoRouteToRaw<infer M> ? M : never
   export interface State<RouteToRaw extends VmoRouteToRaw<Record<string, any>>> {
-    confirmToLeaveMethod?: (meta:RouterStore.ExtractRouteInfoType<RouteToRaw>) => Promise<boolean> | boolean
+    confirmToLeaveMethod?: (meta: RouterStore.ExtractRouteInfoType<RouteToRaw>) => Promise<boolean> | boolean
     cacheMethods?: CacherMethods<RouteToRaw> // 路由缓存的方法
     browserBeforeunloadDisabled: boolean // 浏览器关闭刷行行为是否触发弹窗
     routeToLeaveDisabled: boolean // 是否阻止路由跳转
@@ -84,7 +84,7 @@ export function useRouterStore<RouteToRaw extends Record<string, any>>() {
           this.keepAliveRouteNames = Array.from(new Set([...this.keepAliveRouteNames, name]))
           this.keepAliveRouteNames = !this.keepAliveMax
             ? this.keepAliveRouteNames
-            : this.keepAliveRouteNames.slice(0, this.keepAliveMax)
+            : this.keepAliveRouteNames.slice(-this.keepAliveMax)
         } catch (err) {
           throw err
         }
