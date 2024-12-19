@@ -14,6 +14,10 @@
           @click="routerTo(item)">
           {{ item.label }}
         </span>
+
+        <span class="flex flex-row items-center justify-center text-base font-bold h-[30px] border-y border-gray-800">
+          {{ store.getCachedRoutes.length }}
+        </span>
       </div>
       <div class="flex flex-col flex-grow bg-gray-950">
         <div class="text-xs text-white flex-row flex">

@@ -39,7 +39,6 @@ try {
   })
   store.setConfirmToLeaveMethod(meta => {
     return new Promise((resolve, reject) => {
-      
       ElMessageBox({
         title: '操作提示',
         message: '当前页面未能保存'
@@ -56,6 +55,7 @@ try {
     PGS,
     store
   )
+  // store.setMutipleCatch(false)
   router.beforeEach((to, from, next) => {
     console.log(to)
     if (to.meta.keepAlive) {

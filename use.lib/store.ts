@@ -21,7 +21,7 @@ export namespace RouterStore {
     browserBeforeunloadDisabled: boolean // 浏览器关闭刷行行为是否触发弹窗
     routeToLeaveDisabled: boolean // 是否阻止路由跳转
     mutipleCatch: boolean // 缓存模式 为ture 时，会缓存所有的路由表，false 只缓存当前路由，此设置可配合 token 机制，做到浏览器开启新标签是否能打开用户获得授权的任意页面，或直接地址跳转；
-    cachedRoutes: RouteToRaw[] // 动态添加路由加载表，作为缓存避免页面刷新时丢失
+    cachedRoutes: RouteToRaw[] | null // 动态添加路由加载表，作为缓存避免页面刷新时丢失
     keepAliveRouteNames: string[] // 缓存路由表, 此表只在内存中存在，刷新后会丢弃
     keepAliveMax?: number
   }
@@ -31,25 +31,22 @@ export namespace RouterStore {
 export function useRouterStore<RouteToRaw extends Record<string, any>>() {
   return defineStore('router', {
     state: (): RouterStore.State<RouteToRaw> => ({
-      confirmToLeaveMethod: async meta => {
-        console.log('confirmToLeaveMethod:', meta)
-        return true
-      },
-      cachedRoutes: [],
+      confirmToLeaveMethod: async meta => true,
+      cachedRoutes: null,
       keepAliveRouteNames: [],
       mutipleCatch: true,
       routeToLeaveDisabled: false,
       browserBeforeunloadDisabled: false
     }),
     getters: {
-      getCachedRoutes: state => state.cacheMethods?.getter() ?? state.cachedRoutes,
+      getCachedRoutes: state => state.cachedRoutes ?? state.cacheMethods?.getter() ?? [],
       getKeepAliveRouteNames: state => state.keepAliveRouteNames,
       getMutipleCatch: state => state.mutipleCatch,
       getBrowserBeforeunloadDisabled: state => state.browserBeforeunloadDisabled,
       getRouteToLeaveDisabled: state => state.routeToLeaveDisabled,
       getKeepAliveMax: state => state.keepAliveMax,
       getCacheMethod: state => state.cacheMethods,
-      getPreventNavigationMethod: state => state.confirmToLeaveMethod
+      getConfirmToLeaveMethod: state => state.confirmToLeaveMethod
     },
     actions: {
       /**
@@ -57,8 +54,8 @@ export function useRouterStore<RouteToRaw extends Record<string, any>>() {
        * @param to
        */
       insertCachedRoute(to: RouteToRaw) {
-        ;(this.cachedRoutes as RouteToRaw[]) = this.cacheMethods?.getter() ?? []
-        if (!pluck('name', this.cachedRoutes).includes(to.name)) {
+        ;(this.cachedRoutes as RouteToRaw[]) = this.getCachedRoutes as RouteToRaw[]
+        if (!pluck('name', this.getCachedRoutes).includes(to.name)) {
           this.mutipleCatch
             ? (this.cachedRoutes as RouteToRaw[]).push(to as RouteToRaw)
             : ((this.cachedRoutes as RouteToRaw[]) = [to])
@@ -70,8 +67,8 @@ export function useRouterStore<RouteToRaw extends Record<string, any>>() {
        * @param name
        */
       removeCachedRoute(name: string) {
-        ;(this.cachedRoutes as RouteToRaw[]) = this.cacheMethods?.getter() ?? []
-        this.cachedRoutes = this.cachedRoutes.filter(route => route.name != name)
+        ;(this.cachedRoutes as RouteToRaw[]) = this.getCachedRoutes as RouteToRaw[]
+        ;(this.cachedRoutes as RouteToRaw[]) = this.getCachedRoutes.filter(route => route.name != name) as RouteToRaw[]
         this.cacheMethods?.setter(this.cachedRoutes as RouteToRaw[])
         // 调用持久化方法
       },
@@ -80,14 +77,10 @@ export function useRouterStore<RouteToRaw extends Record<string, any>>() {
        * @param name
        */
       insertKeepAliveNames(name: string) {
-        try {
-          this.keepAliveRouteNames = Array.from(new Set([...this.keepAliveRouteNames, name]))
-          this.keepAliveRouteNames = !this.keepAliveMax
-            ? this.keepAliveRouteNames
-            : this.keepAliveRouteNames.slice(-this.keepAliveMax)
-        } catch (err) {
-          throw err
-        }
+        this.keepAliveRouteNames = Array.from(new Set([...this.keepAliveRouteNames, name]))
+        this.keepAliveRouteNames = !this.keepAliveMax
+          ? this.keepAliveRouteNames
+          : this.keepAliveRouteNames.slice(-this.keepAliveMax)
       },
       /**
        * 移除 keepAlive 缓存名

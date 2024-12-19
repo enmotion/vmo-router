@@ -6,13 +6,22 @@ import dts from 'vite-plugin-dts'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  define:{
-    __VUE_PROD_HYDRATION_MISMATCH_DETAILS__:'true'
+  define: {
+    __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: 'true'
   },
   plugins: [vue(), dts({ copyDtsFiles: true })],
   server: {
     host: '0.0.0.0',
     port: 1980
+  },
+  test: {
+    environment: 'happy-dom',
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
+      include: ['use.lib/']
+      // exclude: ['node_modules/','postbu','dist/', 'src/**/*.d.ts', 'src/**/*.ts', 'src/**/*.vue', 'src/**/*.{test,spec}.ts']
+    }
   },
   build: {
     // Vite 模块打包模式 配置
@@ -22,14 +31,14 @@ export default defineConfig({
       fileName: 'vmo-router'
     },
     rollupOptions: {
-      external: ['vue','vue-router','pinia','ramda','vmo-store'],
+      external: ['vue', 'vue-router', 'pinia', 'ramda', 'vmo-store'],
       output: {
         globals: {
-          vue: 'vue',          
-          'pinia':'pinia',
-          'ramda':'ramda',
-          'vue-router':'vue-router',
-          'vmo-store':'vmo-store'
+          vue: 'vue',
+          pinia: 'pinia',
+          ramda: 'ramda',
+          'vue-router': 'vue-router',
+          'vmo-store': 'vmo-store'
         }
       }
     }

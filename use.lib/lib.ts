@@ -48,7 +48,7 @@ export function loadPageTemplateByImport(templates: Record<string, unknown>): Re
  */
 export function validateVmoRouterToRaw<META extends Record<string, any>>(
   routeLocationNamedRaw: VmoRouteToRaw<META>,
-  pageTemplates: { [key: string]: RouteRecordRaw }
+  pageTemplates: Record<string, Partial<RouteRecordRaw>>
 ): boolean {
   return (
     [
