@@ -148,7 +148,7 @@ function createRouter<META extends Record<string, any>>(
    */
   function removeRoute(name: string) {
     store?.removeCachedRoute(name) // 移除路由缓存表，并非keepAlive
-    return _router.removeRoute(name as string) // 从路由中移除
+    return _router.hasRoute(name as string ) && _router.removeRoute(name as string) // 从路由中移除
   }
   /**
    * 重载所需动态路由 批量操作
