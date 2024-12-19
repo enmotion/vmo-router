@@ -32,7 +32,7 @@ export type ProxyVueRouterMethods<META extends Record<string, any>> = {
   replace: (to: VmoRouteToRaw<META>) => NavigationFailure | void | undefined
   removeRoute: (name: string) => void
   reloadRoutes: (reloads: VmoRouteToRaw<META>[]) => void
-  clearRoutes: () => void
+  clearRoutes: (all?:boolean) => void
 }
 /**
  * 重新定义返回的 Router 实例的类型
@@ -150,7 +150,7 @@ function createRouter<META extends Record<string, any>>(
    * 重载所需动态路由 批量操作
    * @param reloads
    */
-  function reloadRoutes(reloads: VmoRouteToRaw<META>[]) {
+  async function reloadRoutes(reloads: VmoRouteToRaw<META>[]) {
     try {
       // 先操作没有父路由的，再操作需要父路由的路由
       const sortedReloads = reloads.sort((a, b) => (a.template?.parent ? 1 : -1) - (b.template?.parent ? 1 : -1))

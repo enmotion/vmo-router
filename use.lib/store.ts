@@ -54,6 +54,7 @@ export function useRouterStore<RouteToRaw extends Record<string, any>>() {
        * @param to
        */
       insertCachedRoute(to: RouteToRaw) {
+        // console.log(to,'sss')
         ;(this.cachedRoutes as RouteToRaw[]) = this.getCachedRoutes as RouteToRaw[]
         if (!pluck('name', this.getCachedRoutes).includes(to.name)) {
           this.mutipleCatch
