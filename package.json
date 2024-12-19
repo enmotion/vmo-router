@@ -2,7 +2,7 @@
   "name": "vmo-router",
   "version": "0.0.0-beta.0",
   "type": "module",
-  "private": true,
+  "private": false,
   "description": "vmox component lib...",
   "main": "./dist/vmo-router.umd.cjs",
   "module": "./dist/vmo-router.js",
