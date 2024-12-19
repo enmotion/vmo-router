@@ -31,7 +31,7 @@ export type ProxyVueRouterMethods<META extends Record<string, any>> = {
   push: (to: VmoRouteToRaw<META>) => NavigationFailure | void | undefined
   replace: (to: VmoRouteToRaw<META>) => NavigationFailure | void | undefined
   removeRoute: (name: string) => void
-  reloadRoutes: (reloads: VmoRouteToRaw<META>[]) => void
+  reloadRoutes: (reloads: VmoRouteToRaw<META>[], needClear?:boolean) => void
   clearRoutes: (all?:boolean) => void
 }
 /**
@@ -66,12 +66,16 @@ function createRouter<META extends Record<string, any>>(
   async function beforeEach(guard: NavigationGuardWithThis<Router>) {
     const wrapGuard: NavigationGuardWithThis<undefined> = async (to, from, next) => {
       //... 劫持守卫的方法内容可以写在这里
-      if (store?.getRouteToLeaveDisabled) {
-        const confirmed = store?.confirmToLeaveMethod && (await store?.confirmToLeaveMethod(from.meta as META))
-        store.setRouteToLeaveDisabled(false)
-        return confirmed ? guard.bind(_router)(to, from, next) : next(false)
-      } else {
-        return guard.bind(_router)(to, from, next)
+      try{
+        if (store?.getRouteToLeaveDisabled) {
+          const confirmed = store?.confirmToLeaveMethod && (await store?.confirmToLeaveMethod(from.meta as META))
+          store.setRouteToLeaveDisabled(false)
+          return confirmed ? guard.bind(_router)(to, from, next) : next(false)
+        } else {
+          return guard.bind(_router)(to, from, next)
+        }
+      }catch(err){
+        next(false)
       }
     }
     _router.beforeEach(await wrapGuard)
@@ -154,9 +158,12 @@ function createRouter<META extends Record<string, any>>(
     try {
       // 先操作没有父路由的，再操作需要父路由的路由
       const sortedReloads = reloads.sort((a, b) => (a.template?.parent ? 1 : -1) - (b.template?.parent ? 1 : -1))
+      clearRoutes()
       // 使用 Promise.all 并行处理路由加载
       return Promise.all(sortedReloads.map(item => addRouter(item)))
-        .then(() => {
+        .then((res) => {
+          // 添加路由成功后，需要逐一将路由表添入缓存路由状态管理器中
+          sortedReloads.forEach(item=>store?.insertCachedRoute(item))
           console.log('All routes reloaded successfully')
         })
         .catch(err => {

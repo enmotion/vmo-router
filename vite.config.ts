@@ -19,7 +19,8 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
-      include: ['use.lib/']
+      include: ['use.lib/'],
+      reportsDirectory: './test/reports/unit/coverage'
       // exclude: ['node_modules/','postbu','dist/', 'src/**/*.d.ts', 'src/**/*.ts', 'src/**/*.vue', 'src/**/*.{test,spec}.ts']
     }
   },
