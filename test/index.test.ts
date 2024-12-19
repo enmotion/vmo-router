@@ -2,14 +2,14 @@
 import { mergeAll } from 'ramda'
 import { describe, it, expect, beforeEach as setupBeforeEach, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
-import { createRouter } from '../use.lib/index'
-import type { ProxyVueRouterMethods } from '../use.lib/index'
+import { createRouter,useRouter } from '../use.lib/index'
 import { createWebHistory,  } from 'vue-router'
-import type { Router, RouterOptions } from "vue-router"
-import { addRouterWithVmoRouterToRaw } from '../use.lib/lib'
 import templatePool from "../src/pages/index"
 import { useRouterStore } from '../use.lib/store'
+
 import type { VmoRouteToRaw } from '../types'
+import type { ProxyVueRouterMethods } from '../use.lib/index'
+import type { Router, RouterOptions } from "vue-router"
 // 模拟 RouterStore
 
 
@@ -97,8 +97,10 @@ describe('createRouter', () => {
   })
 
   it('should correctly handle reloadRoutes', async () => {
-    const insertCachedRoute = vi.spyOn(mockRouterStore, 'insertCachedRoute')
-    router = createRouter(routerOptions, templatePool, mockRouterStore)
+   
+    router = await createRouter(routerOptions, templatePool, mockRouterStore)
+    console.log(useRouter(),'aaaa')
+    const addRoute = vi.spyOn(router.$instance, 'addRoute')
     const reloads: VmoRouteToRaw<Record<string, any>>[] = [
       { name: 'sample-a1', template:{pageKey:'SampleA',route:{path:'sample-a1'}} },
       { name: 'sample-b1', template:{pageKey:'SampleB',route:{path:'sample-b1'}} },
@@ -106,7 +108,7 @@ describe('createRouter', () => {
 
     await router.reloadRoutes(reloads);
 
-    expect(insertCachedRoute).toHaveBeenCalled()
+    expect(addRoute).toHaveBeenCalled()
     // expect(mockRouterStore.insertCachedRoute).toHaveBeenCalledWith(reloads[1])
   })
 
