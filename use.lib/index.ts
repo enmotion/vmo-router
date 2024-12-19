@@ -199,7 +199,7 @@ function createRouter<META extends Record<string, any>>(
         return _registration[prop as keyof ProxyVueRouterMethods<META>]
       }
     }
-  }) as Router & { $instance: Router } & ProxyVueRouterMethods<META>
+  }) as Omit<Router, 'addRouter' | 'removeRoute' | 'clearRoutes'> & { $instance: Router } & ProxyVueRouterMethods<META>
 }
 // 动态导出所有属性和方法
 export {

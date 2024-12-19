@@ -85,7 +85,7 @@ export function addRouterWithVmoRouterToRaw<META extends Record<string, any>>(
         routeLocationNamedRaw?.template?.route ?? {}
       )
       if (!isNil(prototype.component)) {
-        typeof 'sser' == 'function'
+        console.log('sss1', typeof prototype.component == 'function')
         prototype.component =
           typeof prototype.component == 'function'
             ? _routePageComponentLoader.bind({ name: routeLocationNamedRaw.name }, prototype.component)
