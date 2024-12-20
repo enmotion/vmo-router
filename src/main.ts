@@ -1,6 +1,6 @@
 import './assets/style.css'
 import { mergeAll } from 'ramda'
-import { createWebHashHistory } from 'vue-router'
+import { createWebHashHistory, type Router } from 'vue-router'
 import { createRouter, type VmoRouteToRaw } from '../index'
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'

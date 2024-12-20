@@ -2,14 +2,16 @@
  * @Author: enmotion
  * @Date: 2024-12-14 00:30:07
  * @Last Modified by: enmotion
- * @Last Modified time: 2024-12-21 04:49:15
+ * @Last Modified time: 2024-12-21 05:09:10
  */
 
 import type {
   RouteRecordRaw,
   RouteComponent,
-  RouteLocationAsRelativeGeneric
-  // Router,
+  RouteLocationAsRelativeGeneric,
+  Router,
+  RouteLocationNormalized,
+  NavigationFailure
   // RouteLocationNamedRaw,
   // RouteQueryAndHash,
   // RouteLocationOptions,
@@ -77,7 +79,7 @@ export type VmoNavigationGuard = (
 export type VmoExtendedRouter<META extends Record<string, any>> = Omit<
   Router,
   'addRouter' | 'removeRoute' | 'clearRoutes' | 'beforeEach'
-> & { $instance?: Router } & ProxyVueRouterMethods<META>
+> & { $instance: Router } & ProxyVueRouterMethods<META>
 
 export type ProxyVueRouterMethods<META extends Record<string, any>> = {
   beforeEach: (guard: VmoNavigationGuard) => void
