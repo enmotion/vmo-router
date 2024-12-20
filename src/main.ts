@@ -1,39 +1,39 @@
-import "./assets/style.css";
-import { mergeAll } from "ramda";
-import { createWebHashHistory } from "vue-router";
-import { createRouter, type VmoRouteToRaw } from "../index";
-import { createApp } from "vue";
-import { createPinia } from "pinia";
-import "element-plus/dist/index.css";
+import './assets/style.css'
+import { mergeAll } from 'ramda'
+import { createWebHashHistory } from 'vue-router'
+import { createRouter, type VmoRouteToRaw } from '../index'
+import { createApp } from 'vue'
+import { createPinia } from 'pinia'
+import 'element-plus/dist/index.css'
 
-import PGS from "./pages/index";
-import App from "./App.vue";
-import { VmoStore } from "vmo-store";
-import { generateRouter } from "./router";
-import { useRouterStore } from "@lib/store";
-import { ElMessageBox } from "element-plus";
+import PGS from './pages/index'
+import App from './App.vue'
+import { VmoStore } from 'vmo-store'
+import { generateRouter } from './router'
+import { useRouterStore } from '@lib/store'
+import { ElMessageBox } from 'element-plus'
 
 type Meta = {
-  keepAlive: boolean;
-  name: string;
-};
+  keepAlive: boolean
+  name: string
+}
 const data = new VmoStore<{ routers: VmoRouteToRaw<Meta>[] }>({
-  namespace: "vmo-router",
-  cryptoKey: "aaafdasffasd",
+  namespace: 'vmo-router',
+  cryptoKey: 'aaafdasffasd',
   version: 1,
   dataProps: {
     routers: {
       type: Array,
       default: () => [],
-      storge: "localStorage",
-    },
-  },
-});
-console.log(PGS);
+      storge: 'localStorage'
+    }
+  }
+})
+console.log(PGS)
 
 try {
-  const app = createApp(App).use(createPinia());
-  const router = generateRouter();
+  const app = createApp(App).use(createPinia())
+  const router = generateRouter()
   // const store = useRouterStore<VmoRouteToRaw<Meta>>()
   // store.setCacheMethods({
   //   setter: routes => data.setData('routers', routes),
@@ -69,8 +69,8 @@ try {
   //   }
   //   next()
   // })
-  app.use(router).mount("#app");
+  app.use(router).mount('#app')
   // router.$instance.replace({ name: 'sample-01' })
 } catch (err) {
-  console.log(err);
+  console.log(err)
 }

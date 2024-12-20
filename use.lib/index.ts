@@ -2,7 +2,7 @@
  * @Author: enmotion
  * @Date: 2024-12-05 23:19:20
  * @Last Modified by: enmotion
- * @Last Modified time: 2024-12-16 09:16:06
+ * @Last Modified time: 2024-12-20 13:15:36
  */
 import * as VueRouter from 'vue-router'
 import {
@@ -31,8 +31,8 @@ export type ProxyVueRouterMethods<META extends Record<string, any>> = {
   push: (to: VmoRouteToRaw<META>) => NavigationFailure | void | undefined
   replace: (to: VmoRouteToRaw<META>) => NavigationFailure | void | undefined
   removeRoute: (name: string) => void
-  reloadRoutes: (reloads: VmoRouteToRaw<META>[], needClear?:boolean) => void
-  clearRoutes: (all?:boolean) => void
+  reloadRoutes: (reloads: VmoRouteToRaw<META>[], needClear?: boolean) => void
+  clearRoutes: (all?: boolean) => void
 }
 /**
  * 重新定义返回的 Router 实例的类型
@@ -66,7 +66,7 @@ function createRouter<META extends Record<string, any>>(
   async function beforeEach(guard: NavigationGuardWithThis<Router>) {
     const wrapGuard: NavigationGuardWithThis<undefined> = async (to, from, next) => {
       //... 劫持守卫的方法内容可以写在这里
-      try{
+      try {
         if (store?.getRouteToLeaveDisabled) {
           const confirmed = store?.confirmToLeaveMethod && (await store?.confirmToLeaveMethod(from.meta as META))
           store.setRouteToLeaveDisabled(false)
@@ -74,7 +74,7 @@ function createRouter<META extends Record<string, any>>(
         } else {
           return guard.bind(_router)(to, from, next)
         }
-      }catch(err){
+      } catch (err) {
         next(false)
       }
     }
@@ -120,12 +120,14 @@ function createRouter<META extends Record<string, any>>(
           _router[method](to)
         })
       } else {
-        console.log(to)
+        // console.log(to)
         _router[method](to)
+        !store?.getMutipleCatch && store?.insertCachedRoute(to) // 当路由表缓存设置为单个时, 每次跳转都需要更新当前的缓存
       }
     } catch (err) {
       console.error(err)
       _router[method](to)
+      !store?.getMutipleCatch && store?.insertCachedRoute(to) // 当路由表缓存设置为单个时, 每次跳转都需要更新当前的缓存
     }
   }
   /**
@@ -135,6 +137,7 @@ function createRouter<META extends Record<string, any>>(
    */
   async function addRouter(to: VmoRouteToRaw<META>) {
     try {
+      // 动态的添加路由, 该方法会通过 to 对象的设置，动态实例一个路由，并添加到路由表中
       return addRouterWithVmoRouterToRaw(to, template, _router)
     } catch (err) {
       console.error(err)
@@ -148,7 +151,7 @@ function createRouter<META extends Record<string, any>>(
    */
   function removeRoute(name: string) {
     store?.removeCachedRoute(name) // 移除路由缓存表，并非keepAlive
-    return _router.hasRoute(name as string ) && _router.removeRoute(name as string) // 从路由中移除
+    return _router.hasRoute(name as string) && _router.removeRoute(name as string) // 从路由中移除
   }
   /**
    * 重载所需动态路由 批量操作
@@ -161,9 +164,9 @@ function createRouter<META extends Record<string, any>>(
       clearRoutes()
       // 使用 Promise.all 并行处理路由加载
       return Promise.all(sortedReloads.map(item => addRouter(item)))
-        .then((res) => {
+        .then(res => {
           // 添加路由成功后，需要逐一将路由表添入缓存路由状态管理器中
-          sortedReloads.forEach(item=>store?.insertCachedRoute(item))
+          sortedReloads.forEach(item => store?.insertCachedRoute(item))
           console.log('All routes reloaded successfully')
         })
         .catch(err => {
