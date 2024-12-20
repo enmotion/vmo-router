@@ -2,20 +2,19 @@
 import { mergeAll } from 'ramda'
 import { describe, it, expect, beforeEach as setupBeforeEach, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
-import { createRouter,useRouter } from '../use.lib/index'
-import { createWebHistory,  } from 'vue-router'
-import templatePool from "../src/pages/index"
+import { createRouter, useRouter } from '../use.lib/index'
+import { createWebHistory } from 'vue-router'
+import templatePool from '../src/pages/index'
 import { useRouterStore } from '../use.lib/store'
 
 import type { VmoRouteToRaw } from '../types'
 import type { ProxyVueRouterMethods } from '../use.lib/index'
-import type { Router, RouterOptions } from "vue-router"
+import type { Router, RouterOptions } from 'vue-router'
 // 模拟 RouterStore
-
 
 // 模拟 addRouterWithVmoRouterToRaw
 vi.mock('./lib', () => ({
-  addRouterWithVmoRouterToRaw: vi.fn(async (to) => {
+  addRouterWithVmoRouterToRaw: vi.fn(async to => {
     // 模拟添加路由成功
     return true
   })
@@ -24,17 +23,12 @@ vi.mock('./lib', () => ({
 // 模拟路由配置
 const routerOptions: RouterOptions = {
   history: createWebHistory(),
-  routes: [
-    mergeAll([templatePool.MainPg,{children:[
-        templatePool.SampleA
-    ]}])
-  ]
+  routes: [mergeAll([templatePool.MainPg, { children: [templatePool.SampleA] }])]
 }
-
 
 describe('createRouter', () => {
   let router: Router & { $instance: Router } & ProxyVueRouterMethods<Record<string, any>>
-  let mockRouterStore:ReturnType<typeof useRouterStore>
+  let mockRouterStore: ReturnType<typeof useRouterStore>
   setupBeforeEach(() => {
     // 重置所有模拟函数
     vi.clearAllMocks()
@@ -57,7 +51,10 @@ describe('createRouter', () => {
 
   it('should correctly handle push navigation', async () => {
     router = createRouter(routerOptions, templatePool, mockRouterStore)
-    const to: VmoRouteToRaw<Record<string, any>> = { name: 'sample-b', template:{pageKey:'SampleB',route:{path:'sampl-b'}} }
+    const to: VmoRouteToRaw<Record<string, any>> = {
+      name: 'sample-b',
+      template: { pageKey: 'SampleB', route: { path: 'sampl-b' } }
+    }
     // 模拟 _handleRouteNavigation
     const pushMock = vi.spyOn(router, 'push')
     await router.push(to)
@@ -66,7 +63,10 @@ describe('createRouter', () => {
 
   it('should correctly handle replace navigation', async () => {
     router = createRouter(routerOptions, templatePool, mockRouterStore)
-    const to: VmoRouteToRaw<Record<string, any>> = { name: 'sample-b', template:{pageKey:'SampleB',route:{path:'sampl-b'}} }
+    const to: VmoRouteToRaw<Record<string, any>> = {
+      name: 'sample-b',
+      template: { pageKey: 'SampleB', route: { path: 'sampl-b' } }
+    }
     // 模拟 _handleRouteNavigation
     const replaceMock = vi.spyOn(router, 'replace')
     await router.replace(to)
@@ -76,7 +76,10 @@ describe('createRouter', () => {
   it('should correctly handle push', async () => {
     const addRouteSpy = vi.spyOn(mockRouterStore, 'insertCachedRoute')
     router = createRouter(routerOptions, templatePool, mockRouterStore)
-    const to: VmoRouteToRaw<Record<string, any>> = { name: 'sample-c', template:{pageKey:'SampleC',route:{path:'sampl-c'}} }
+    const to: VmoRouteToRaw<Record<string, any>> = {
+      name: 'sample-c',
+      template: { pageKey: 'SampleC', route: { path: 'sampl-c' } }
+    }
     await router.push(to)
     expect(addRouteSpy).toHaveBeenCalledWith(to)
   })
@@ -97,16 +100,15 @@ describe('createRouter', () => {
   })
 
   it('should correctly handle reloadRoutes', async () => {
-   
     router = await createRouter(routerOptions, templatePool, mockRouterStore)
-    console.log(useRouter(),'aaaa')
+    console.log(useRouter(), 'aaaa')
     const addRoute = vi.spyOn(router.$instance, 'addRoute')
     const reloads: VmoRouteToRaw<Record<string, any>>[] = [
-      { name: 'sample-a1', template:{pageKey:'SampleA',route:{path:'sample-a1'}} },
-      { name: 'sample-b1', template:{pageKey:'SampleB',route:{path:'sample-b1'}} },
+      { name: 'sample-a1', template: { pageKey: 'SampleA', route: { path: 'sample-a1' } } },
+      { name: 'sample-b1', template: { pageKey: 'SampleB', route: { path: 'sample-b1' } } }
     ]
 
-    await router.reloadRoutes(reloads);
+    await router.reloadRoutes(reloads)
 
     expect(addRoute).toHaveBeenCalled()
     // expect(mockRouterStore.insertCachedRoute).toHaveBeenCalledWith(reloads[1])
@@ -115,30 +117,39 @@ describe('createRouter', () => {
   it('should correctly handle clearRoutes', async () => {
     const removeCachedRoute = vi.spyOn(mockRouterStore, 'removeCachedRoute')
     router = createRouter(routerOptions, templatePool, mockRouterStore)
-    await router.push({ name: 'sample-b', template:{pageKey:'SampleB',route:{path:'sampl-b'}} })
-    await router.push({ name: 'sample-b1', template:{pageKey:'SampleB',route:{path:'sampl-b1'}} })
+    await router.push({ name: 'sample-b', template: { pageKey: 'SampleB', route: { path: 'sampl-b' } } })
+    await router.push({ name: 'sample-b1', template: { pageKey: 'SampleB', route: { path: 'sampl-b1' } } })
     router.clearRoutes(false)
     expect(removeCachedRoute).toHaveBeenCalledWith('sample-b')
     expect(removeCachedRoute).toHaveBeenCalledWith('sample-b1')
   })
 
-  
-//   it('should correctly handle beforeEach with store', async () => {
-//     router = createRouter(routerOptions, templatePool, mockRouterStore)
-//     const guard = vi.fn()
+  it('should only cached one route', async () => {
+    router = createRouter(routerOptions, templatePool, mockRouterStore)
+    mockRouterStore.setMutipleCatch(false)
+    await router.push({ name: 'sample-b', template: { pageKey: 'SampleB', route: { path: 'sampl-b' } } })
+    await router.push({ name: 'sample-b1', template: { pageKey: 'SampleB', route: { path: 'sampl-b1' } } })
+    expect(mockRouterStore.getCachedRoutes).toEqual([
+      { name: 'sample-b1', template: { pageKey: 'SampleB', route: { path: 'sampl-b1' } } }
+    ])
+  })
 
-//     await router.beforeEach(guard)
+  //   it('should correctly handle beforeEach with store', async () => {
+  //     router = createRouter(routerOptions, templatePool, mockRouterStore)
+  //     const guard = vi.fn()
 
-//     const to = { path: '/about' }
-//     const from = { path: '/' }
-//     const next = vi.fn()
+  //     await router.beforeEach(guard)
 
-//     // 模拟路由守卫调用
-//     const wrappedGuard = (router as any).beforeEach.mock.calls[0][0]
-//     await wrappedGuard(to, from, next)
+  //     const to = { path: '/about' }
+  //     const from = { path: '/' }
+  //     const next = vi.fn()
 
-//     expect(mockRouterStore.setRouteToLeaveDisabled).toHaveBeenCalledWith(false)
-//     expect(guard).toHaveBeenCalledWith(to, from, next)
-//     expect(next).toHaveBeenCalled()
-//   })
+  //     // 模拟路由守卫调用
+  //     const wrappedGuard = (router as any).beforeEach.mock.calls[0][0]
+  //     await wrappedGuard(to, from, next)
+
+  //     expect(mockRouterStore.setRouteToLeaveDisabled).toHaveBeenCalledWith(false)
+  //     expect(guard).toHaveBeenCalledWith(to, from, next)
+  //     expect(next).toHaveBeenCalled()
+  //   })
 })
