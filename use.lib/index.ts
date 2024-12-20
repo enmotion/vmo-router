@@ -2,7 +2,7 @@
  * @Author: enmotion
  * @Date: 2024-12-05 23:19:20
  * @Last Modified by: enmotion
- * @Last Modified time: 2024-12-20 13:15:36
+ * @Last Modified time: 2024-12-21 04:49:38
  */
 import * as VueRouter from 'vue-router'
 import {
@@ -18,22 +18,13 @@ import {
   useRoute,
   parseQuery,
   stringifyQuery,
-  NavigationGuardWithThis
+  NavigationGuard
 } from 'vue-router'
 import type { Router, RouterOptions, RouteRecordRaw, NavigationFailure } from 'vue-router'
-import { VmoRouteToRaw } from '@type'
+import type { VmoRouteToRaw, VmoNavigationGuard, VmoExtendedRouter, ProxyVueRouterMethods } from '@type'
 import { addRouterWithVmoRouterToRaw } from './lib'
 import type { RouterStore } from './store'
 
-export type ProxyVueRouterMethods<META extends Record<string, any>> = {
-  beforeEach: (guard: NavigationGuardWithThis<Router>) => void
-  addRouter: (to: VmoRouteToRaw<META>) => void
-  push: (to: VmoRouteToRaw<META>) => NavigationFailure | void | undefined
-  replace: (to: VmoRouteToRaw<META>) => NavigationFailure | void | undefined
-  removeRoute: (name: string) => void
-  reloadRoutes: (reloads: VmoRouteToRaw<META>[], needClear?: boolean) => void
-  clearRoutes: (all?: boolean) => void
-}
 /**
  * 重新定义返回的 Router 实例的类型
  * @returns
@@ -63,22 +54,22 @@ function createRouter<META extends Record<string, any>>(
    * 劫持路由守卫的创建过程
    * @param guard 用户自定义的路由守卫方法
    */
-  async function beforeEach(guard: NavigationGuardWithThis<Router>) {
-    const wrapGuard: NavigationGuardWithThis<undefined> = async (to, from, next) => {
+  async function beforeEach(guard: VmoNavigationGuard) {
+    const wrapGuard: NavigationGuard = async (to, from) => {
       //... 劫持守卫的方法内容可以写在这里
       try {
         if (store?.getRouteToLeaveDisabled) {
           const confirmed = store?.confirmToLeaveMethod && (await store?.confirmToLeaveMethod(from.meta as META))
           store.setRouteToLeaveDisabled(false)
-          return confirmed ? guard.bind(_router)(to, from, next) : next(false)
+          return confirmed ? await guard(to, from) : false
         } else {
-          return guard.bind(_router)(to, from, next)
+          return await guard(to, from)
         }
       } catch (err) {
-        next(false)
+        return false
       }
     }
-    _router.beforeEach(await wrapGuard)
+    _router.beforeEach(wrapGuard)
   }
   /**
    * 劫持 push 方法
@@ -209,7 +200,7 @@ function createRouter<META extends Record<string, any>>(
         return _registration[prop as keyof ProxyVueRouterMethods<META>]
       }
     }
-  }) as Omit<Router, 'addRouter' | 'removeRoute' | 'clearRoutes'> & { $instance: Router } & ProxyVueRouterMethods<META>
+  }) as unknown as VmoExtendedRouter<META>
 }
 // 动态导出所有属性和方法
 export {

@@ -8,7 +8,7 @@ import templatePool from '../src/pages/index'
 import { useRouterStore } from '../use.lib/store'
 
 import type { VmoRouteToRaw } from '../types'
-import type { ProxyVueRouterMethods } from '../use.lib/index'
+import type { VmoExtendedRouter } from '../types'
 import type { Router, RouterOptions } from 'vue-router'
 // 模拟 RouterStore
 
@@ -27,7 +27,7 @@ const routerOptions: RouterOptions = {
 }
 
 describe('createRouter', () => {
-  let router: Router & { $instance: Router } & ProxyVueRouterMethods<Record<string, any>>
+  let router: VmoExtendedRouter<Record<string, any>>
   let mockRouterStore: ReturnType<typeof useRouterStore>
   setupBeforeEach(() => {
     // 重置所有模拟函数

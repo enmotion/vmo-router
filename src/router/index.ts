@@ -11,7 +11,7 @@ type Meta = {
 
 export function generateRouter() {
   const store = useRouterStore<VmoRouteToRaw<Meta>>()
-  store.setMutipleCatch(false)
+  store.setMutipleCatch(true)
   store.setCacheMethods({
     setter: routes => sessionStorage.setItem('routes', JSON.stringify(routes)),
     getter: () => JSON.parse(sessionStorage.getItem('routes') ?? '[]') as VmoRouteToRaw<Meta>[]
@@ -35,16 +35,14 @@ export function generateRouter() {
     store
   )
   // store.setMutipleCatch(false)
-  router.beforeEach((to, from, next) => {
-    console.log(to)
+  router.beforeEach((to, from) => {
     if (to.meta.keepAlive) {
       store.insertKeepAliveNames(to.name as string)
     }
     if (to.matched.length == 0) {
-      next({ name: 'error-404' })
-      return
+      return { name: 'error-404' }
     }
-    next()
+    return true
   })
   return router
 }
