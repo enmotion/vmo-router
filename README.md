@@ -217,32 +217,34 @@ export function generateRouter() {
     })
   })
   // 创建路由
-  const router = createRouter<RouteMeta>(
-    {
-      history: createWebHashHistory(), // 同 vue-router
-      routes: [
-        mergeAll([PGS.MainPg, { children: [PGS.SampleA, PGS.SampleB] }]), // 此处装载的是静态路由，不受动态路由管控
-        PGS.Error404
-      ]
-    },
-    PGS, // 模板池 基于 loadPageTemplateByImport 方法创建
-    store // 路由全局状态管理器
-  )
-  // store.setMutipleCatch(false) // 路由表缓存 是否开启多项，默认多项，如果开启单项，则只会缓存当前路由配置持久化，对本地缓存更为友好，但是对某种场景下，通过地址直接跳转带来不便。
-  router.beforeEach((to, from, next) => {
-    console.log(to)
-    if (to.meta.keepAlive) {
-      store.insertKeepAliveNames(to.name as string) // 将路由名 塞入 keepAlive 名单
-    }
-    if (to.matched.length == 0) {
-      next({ name: 'error-404' })
-      return
-    }
-    next()
-  })
+  const router =
+    createRouter<RouteMeta>(
+      {
+        history: createWebHashHistory(), // 同 vue-router
+        routes: [
+          mergeAll([PGS.MainPg, { children: [PGS.SampleA, PGS.SampleB] }]), // 此处装载的是静态路由，不受动态路由管控
+          PGS.Error404
+        ]
+      },
+      PGS, // 模板池 基于 loadPageTemplateByImport 方法创建
+      store // 路由全局状态管理器
+    ) /
+    // store.setMutipleCatch(false) // 路由表缓存 是否开启多项，默认多项，如果开启单项，则只会缓存当前路由配置持久化，对本地缓存更为友好，但是对某种场景下，通过地址直接跳转带来不便。
+    router.beforeEach((to, from) => {
+      console.log(to)
+      if (to.meta.keepAlive) {
+        store.insertKeepAliveNames(to.name as string) // 将路由名 塞入 keepAlive 名单
+      }
+      if (to.matched.length == 0) {
+        return { name: 'error-404' }
+      }
+      return true
+    })
   return router
 }
 ```
+
+> PS: router.beforeEach 的处理函数，已经依照 vue-router 官方推荐方式，弃用了 next， 这里再使用 next 模式无效！
 
 #### 阻止浏览器默认行为
 

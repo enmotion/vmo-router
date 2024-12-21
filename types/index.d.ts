@@ -2,7 +2,7 @@
  * @Author: enmotion
  * @Date: 2024-12-14 00:30:07
  * @Last Modified by: enmotion
- * @Last Modified time: 2024-12-21 05:09:10
+ * @Last Modified time: 2024-12-21 21:43:50
  */
 
 import type {
@@ -70,23 +70,11 @@ export declare type VmoRouteMenuItemRaw<ITEM extends Record<string, any>, META e
   to: VmoRouteToRaw<META>
   children?: VmoRouteMenuItemRaw<ITEM, META>[] // 是否有子菜单,树状递归结构
 }
-
+/**
+ * router.beforeEach 方法中需要作为入参的函数，
+ * 主要是修改了原函数的参数，去掉了 next
+ */
 export type VmoNavigationGuard = (
   from: RouteLocationNormalized,
   to: RouteLocationNormalized
 ) => boolean | Record<string, any>
-
-export type VmoExtendedRouter<META extends Record<string, any>> = Omit<
-  Router,
-  'addRouter' | 'removeRoute' | 'clearRoutes' | 'beforeEach'
-> & { $instance: Router } & ProxyVueRouterMethods<META>
-
-export type ProxyVueRouterMethods<META extends Record<string, any>> = {
-  beforeEach: (guard: VmoNavigationGuard) => void
-  addRouter: (to: VmoRouteToRaw<META>) => void
-  push: (to: VmoRouteToRaw<META>) => NavigationFailure | void | undefined
-  replace: (to: VmoRouteToRaw<META>) => NavigationFailure | void | undefined
-  removeRoute: (name: string) => void
-  reloadRoutes: (reloads: VmoRouteToRaw<META>[], needClear?: boolean) => void
-  clearRoutes: (all?: boolean) => void
-}

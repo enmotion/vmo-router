@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { createRouter, createWebHistory } from '../use.lib/index'
-import type { VmoExtendedRouter } from '../types'
+import type { VmoProxyRouter } from '../types'
 import type { Router } from 'vue-router'
 import { createPinia, setActivePinia } from 'pinia'
 import { useRouterStore } from '../use.lib/store'
@@ -21,7 +21,7 @@ const routeLocationNamedRaw = {
 
 describe('addRouterWithVmoRouterToRaw', () => {
   let routerStore: any
-  let router: VmoExtendedRouter<Record<string, any>>
+  let router: VmoProxyRouter<Record<string, any>>
 
   beforeEach(() => {
     vi.resetAllMocks()

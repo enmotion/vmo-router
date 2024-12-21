@@ -2,7 +2,7 @@
  * @Author: enmotion
  * @Date: 2024-12-05 23:19:20
  * @Last Modified by: enmotion
- * @Last Modified time: 2024-12-21 04:49:38
+ * @Last Modified time: 2024-12-21 21:45:53
  */
 import * as VueRouter from 'vue-router'
 import {
@@ -21,9 +21,30 @@ import {
   NavigationGuard
 } from 'vue-router'
 import type { Router, RouterOptions, RouteRecordRaw, NavigationFailure } from 'vue-router'
-import type { VmoRouteToRaw, VmoNavigationGuard, VmoExtendedRouter, ProxyVueRouterMethods } from '@type'
+import type { VmoRouteToRaw, VmoNavigationGuard } from '@type'
 import { addRouterWithVmoRouterToRaw } from './lib'
 import type { RouterStore } from './store'
+
+/**
+ * 劫持方法类型定义
+ */
+export type ProxyVueRouterMethods<META extends Record<string, any>> = {
+  beforeEach: (guard: VmoNavigationGuard) => void
+  addRouter: (to: VmoRouteToRaw<META>) => void
+  push: (to: VmoRouteToRaw<META>) => NavigationFailure | void | undefined
+  replace: (to: VmoRouteToRaw<META>) => NavigationFailure | void | undefined
+  removeRoute: (name: string) => void
+  reloadRoutes: (reloads: VmoRouteToRaw<META>[], needClear?: boolean) => void
+  clearRoutes: (all?: boolean) => void
+}
+
+/**
+ * 劫持后的代理路由对象
+ */
+export type VmoProxyRouter<META extends Record<string, any>> = Omit<
+  Router,
+  'addRouter' | 'removeRoute' | 'clearRoutes' | 'beforeEach'
+> & { $instance: Router } & ProxyVueRouterMethods<META>
 
 /**
  * 重新定义返回的 Router 实例的类型
@@ -200,7 +221,7 @@ function createRouter<META extends Record<string, any>>(
         return _registration[prop as keyof ProxyVueRouterMethods<META>]
       }
     }
-  }) as unknown as VmoExtendedRouter<META>
+  }) as unknown as VmoProxyRouter<META>
 }
 // 动态导出所有属性和方法
 export {

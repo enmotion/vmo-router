@@ -14,6 +14,7 @@ import {
   parseQuery,
   stringifyQuery
 } from '@lib/index'
+import type { VmoProxyRouter } from '@lib/index'
 import {
   loadPageTemplateByImport,
   validateVmoRouterToRaw,
@@ -22,7 +23,7 @@ import {
 } from '@lib/lib'
 import { useRouterStore } from '@lib/store'
 import type { RouterStore } from '@lib/store'
-import type { Lazy, VmoRouteRecordRaw, VmoRouteToRaw, VmoRouteMenuItemRaw } from '@type'
+import type { Lazy, VmoRouteRecordRaw, VmoRouteToRaw, VmoRouteMenuItemRaw, VmoNavigationGuard } from '@type'
 
 /**
  * createRouter 创建路由的方法
@@ -51,4 +52,12 @@ export {
   useRouterStore
 }
 
-export type { RouterStore, Lazy, VmoRouteRecordRaw, VmoRouteToRaw, VmoRouteMenuItemRaw }
+export type {
+  RouterStore,
+  Lazy,
+  VmoRouteRecordRaw,
+  VmoRouteToRaw,
+  VmoRouteMenuItemRaw,
+  VmoNavigationGuard,
+  VmoProxyRouter
+}
