@@ -8,7 +8,7 @@ import templatePool from '../src/pages/index'
 import { useRouterStore } from '../use.lib/store'
 
 import type { VmoRouteToRaw } from '../types'
-import type { VmoProxyRouter } from '../types'
+import type { VmoProxyRouter } from '../use.lib/index'
 import type { Router, RouterOptions } from 'vue-router'
 // 模拟 RouterStore
 
