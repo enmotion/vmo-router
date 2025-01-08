@@ -181,58 +181,64 @@ type RouteMeta = {
   keepAlive: boolean
   name: string
 }
-// 一定要将内容通过函数包裹起来，避免 useRouterStore 在 pinia 未能注入前调用
+
+// Wrap the content in a function to avoid calling useRouterStore before Pinia is injected
 export function generateRouter() {
-  // 初始化 vmo-router 内置的 pinia 全局状态管理器
+  // Initialize the built-in Pinia global state manager of vmo-router
   const store = useRouterStore<VmoRouteToRaw<RouteMeta>>()
+
   /**
-   * 给全局状态管理器添加缓存处理方法
-   * 1.缓存处理本质就是将路由表 持久化
-   * 2.考虑到不同的运行环境与开发习惯支持开发者用自己的方式进行缓存
-   * 3.本范例做了一个简单的示范，具体开发可以根据自己的需要进行缓存处理
+   * Add cache handling methods to the global state manager
+   * 1. The essence of cache handling is to persist the route table.
+   * 2. Consider different runtime environments and development habits, and support developers in using their own methods for caching.
+   * 3. This example provides a simple demonstration; specific development needs can be handled according to requirements.
    */
   store.setCacheMethods({
     setter: routes => sessionStorage.setItem('routes', JSON.stringify(routes)),
     getter: () => JSON.parse(sessionStorage.getItem('routes') ?? '[]') as VmoRouteToRaw<RouteMeta>[]
   })
+
   /**
-   * 配置路由跳转时，如果遇到需要阻断的情况，阻断行为的具体逻辑
-   * 1. setConfirmToLeaveMethod 添入的方法，将会在路由守 beforeEach 方法前置执行
-   * 2. 它的执行结果如果 返回 false ,则跳转直接终止
-   * 3. 设置它的主要目的，是为了实现路由在部分页面上，可以根据 全局状态内的情况进行阻拦
+   * Configure the logic for route navigation, where if a situation requiring interception occurs, the specific behavior for interception is defined.
+   * 1. The method added by setConfirmToLeaveMethod will be executed before the beforeEach method.
+   * 2. If its execution result returns false, the navigation will be terminated.
+   * 3. The main purpose of setting this method is to block routes on certain pages based on the global state.
    */
   store.setConfirmToLeaveMethod(meta => {
     return new Promise((resolve, reject) => {
       ElMessageBox({
-        title: '操作提示',
-        message: '当前页面未能保存'
+        title: 'Operation Prompt',
+        message: 'The current page has not been saved'
       })
         .then(() => resolve(true))
         .catch(() => reject(false))
     })
   })
-  // 创建路由
+
+  // Create the router
   const router = createRouter<RouteMeta>(
     {
-      history: createWebHashHistory(), // 同 vue-router
+      history: createWebHashHistory(), // Same as vue-router
       routes: [
-        mergeAll([PGS.MainPg, { children: [PGS.SampleA, PGS.SampleB] }]), // 此处装载的是静态路由，不受动态路由管控
+        mergeAll([PGS.MainPg, { children: [PGS.SampleA, PGS.SampleB] }]), // This loads static routes, which are not controlled by dynamic routes
         PGS.Error404
       ]
     },
-    PGS, // 模板池 基于 loadPageTemplateByImport 方法创建
-    store // 路由全局状态管理器 pinia 实现
+    PGS, // Template pool based on the loadPageTemplateByImport method
+    store // Pinia implementation of the router global state manager
   )
+
   router.beforeEach((to, from) => {
     console.log(to)
     if (to.meta.keepAlive) {
-      store.insertKeepAliveNames(to.name as string) // 将路由名 塞入 keepAlive 名单
+      store.insertKeepAliveNames(to.name as string) // Add the route name to the keepAlive list
     }
-    if (to.matched.length == 0) {
+    if (to.matched.length === 0) {
       return { name: 'error-404' }
     }
     return true
   })
+
   return router
 }
 ```
