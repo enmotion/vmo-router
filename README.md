@@ -67,7 +67,7 @@ src/App.vue
 
 ```typescript
 <script setup lang="ts">
-import { usePreventBrowserBeforeunloadBehavior } from '@lib/lib'
+import { usePreventBrowserBeforeunloadBehavior } from 'vmo-router'
 usePreventBrowserBeforeunloadBehavior(true)
 </script>
 
@@ -126,7 +126,7 @@ page.vue
 <script lang="ts">
 import { defineComponent, ref } from 'vue'
 import type { PropType } from 'vue'
-import { useRoute } from '@lib'
+import { useRoute } from 'vmo-router'
 
 export default defineComponent({
   name: 'sample-a',
