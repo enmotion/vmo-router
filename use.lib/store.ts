@@ -39,7 +39,7 @@ export function useRouterStore<RouteToRaw extends Record<string, any>>() {
       browserBeforeunloadDisabled: false
     }),
     getters: {
-      getCachedRoutes: state => state.cachedRoutes ?? state.cacheMethods?.getter() ?? [],
+      getCachedRoutes: state => state.cachedRoutes ?? state.cacheMethods?.getter?.() ?? [],
       getKeepAliveRouteNames: state => state.keepAliveRouteNames,
       getMutipleCatch: state => state.mutipleCatch,
       getBrowserBeforeunloadDisabled: state => state.browserBeforeunloadDisabled,
@@ -60,7 +60,7 @@ export function useRouterStore<RouteToRaw extends Record<string, any>>() {
           this.mutipleCatch
             ? (this.cachedRoutes as RouteToRaw[]).push(to as RouteToRaw)
             : ((this.cachedRoutes as RouteToRaw[]) = [to])
-          this.cacheMethods?.setter(this.cachedRoutes as RouteToRaw[])
+          this.cacheMethods?.setter?.(this.cachedRoutes as RouteToRaw[])
         }
       },
       /**
@@ -74,11 +74,19 @@ export function useRouterStore<RouteToRaw extends Record<string, any>>() {
         // 调用持久化方法
       },
       /**
+       * 直接设置缓存路由名称
+       * @param name
+       */
+      setKeepAliveName(name: string | string[]) {
+        this.keepAliveRouteNames = Array.isArray(name) ? name : [name]
+      },
+      /**
        * 添加 keepAlive 缓存名
        * @param name
        */
-      insertKeepAliveNames(name: string) {
-        this.keepAliveRouteNames = Array.from(new Set([...this.keepAliveRouteNames, name]))
+      insertKeepAliveName(name: string | string[]) {
+        const names = Array.isArray(name) ? name : [name]
+        this.keepAliveRouteNames = Array.from(new Set([...this.keepAliveRouteNames, ...names]))
         this.keepAliveRouteNames = !this.keepAliveMax
           ? this.keepAliveRouteNames
           : this.keepAliveRouteNames.slice(-this.keepAliveMax)
@@ -87,8 +95,9 @@ export function useRouterStore<RouteToRaw extends Record<string, any>>() {
        * 移除 keepAlive 缓存名
        * @param name
        */
-      removeKeepAliveNames(name: string) {
-        this.keepAliveRouteNames = this.keepAliveRouteNames.filter(item => item != name)
+      removeKeepAliveName(name: string | string[]) {
+        const names = Array.isArray(name) ? name : [name]
+        this.keepAliveRouteNames = this.keepAliveRouteNames.filter(item => !names.includes(item))
       },
       /**
        * 设置路由缓存最模式， 单页，
@@ -129,7 +138,7 @@ export function useRouterStore<RouteToRaw extends Record<string, any>>() {
        */
       clearDynamicRouters() {
         this.cachedRoutes = []
-        this.cacheMethods?.setter(this.cachedRoutes as RouteToRaw[])
+        this.cacheMethods?.setter?.(this.cachedRoutes as RouteToRaw[])
       },
       /**
        * 设置缓存所需方法

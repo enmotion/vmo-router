@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { createRouter, createWebHistory } from '../use.lib/index'
-import type { VmoProxyRouter } from '../types'
+import type { VmoProxyRouter } from '../use.lib/index'
 import type { Router } from 'vue-router'
 import { createPinia, setActivePinia } from 'pinia'
 import { useRouterStore } from '../use.lib/store'

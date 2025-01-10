@@ -312,10 +312,12 @@ store.getKeepAliveRouteNames,
 store.insertCachedRoute(to: RouteToRaw)
 // 移除已缓存的路由表
 store.removeCachedRoute(name:string),
+// 设置 keepAlive
+  store.setKeepAliveName(name: string|string[]),
 // 添加 keepAlive
-  store.insertKeepAliveNames(name: string),
+  store.insertKeepAliveName(name: string|string[]),
   // 移除 keepAlive
-  store.removeKeepAliveNames(name: string),
+  store.removeKeepAliveName(name: string|string[]),
   // 设置当前缓存模式，多缓存或者单一缓存， true 为多缓存
   store.setMutipleCatch(mutipleCatch: boolean),
   // 设置是否离开页面提示，是否禁止浏览器默认刷新，返回，导致离开页面的行为，可在单个页面内返回调用

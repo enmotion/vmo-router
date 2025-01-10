@@ -72,16 +72,16 @@ describe('useRouterStore', () => {
 
   test('should not insert duplicate keepAlive route names', () => {
     const store = useRouterStore()
-    store.insertKeepAliveNames('route1')
-    store.insertKeepAliveNames('route1')
+    store.insertKeepAliveName('route1')
+    store.insertKeepAliveName('route1')
     expect(store.getKeepAliveRouteNames.length).toBe(1)
   })
 
   test('should remove keepAlive route names correctly', () => {
     const store = useRouterStore()
-    store.insertKeepAliveNames('route1')
-    store.insertKeepAliveNames('route2')
-    store.removeKeepAliveNames('route1')
+    store.insertKeepAliveName('route1')
+    store.insertKeepAliveName('route2')
+    store.removeKeepAliveName('route1')
     expect(store.getKeepAliveRouteNames).not.toContain('route1')
     expect(store.getKeepAliveRouteNames).toContain('route2')
   })
@@ -89,9 +89,9 @@ describe('useRouterStore', () => {
   test('should remove keepAlive route names correctly', () => {
     const store = useRouterStore()
     store.setKeepAliveMax(2)
-    store.insertKeepAliveNames('route1')
-    store.insertKeepAliveNames('route2')
-    store.insertKeepAliveNames('route3')
+    store.insertKeepAliveName('route1')
+    store.insertKeepAliveName('route2')
+    store.insertKeepAliveName('route3')
     expect(store.getKeepAliveRouteNames).not.toContain('route1')
     expect(store.getKeepAliveRouteNames).toContain('route2')
     expect(store.getKeepAliveRouteNames.length).equal(2)
@@ -146,28 +146,86 @@ describe('useRouterStore', () => {
     expect(store.getConfirmToLeaveMethod).toEqual(method)
   })
 
-  // test('should set confirmToLeaveMethod correctly', () => {
-  //   const store = useRouterStore()
-  //   const data = new VmoStore<{ routes: any[] }>({
-  //     namespace: 'router:test',
-  //     dataProps: {
-  //       routes: {
-  //         type: String,
-  //         default: () => [],
-  //         storge: 'sessionStorage'
-  //       }
-  //     }
-  //   })
-  //   store.setCacheMethods({
-  //     setter: routes => {
-  //       return data.setData('routes', routes)
-  //     },
-  //     getter: () => {
-  //       return data.getData('routes')
-  //     }
-  //   })
-  //   const method = async meta => true
-  //   store.setConfirmToLeaveMethod(method)
-  //   expect(store.getConfirmToLeaveMethod).toEqual(method)
-  // })
+  test('should set keepAliveName correctly with string', () => {
+    const store = useRouterStore()
+    store.setKeepAliveName('main-pg')
+    expect(store.getKeepAliveRouteNames).toEqual(['main-pg'])
+  })
+
+  test('should set keepAliveName correctly width array', () => {
+    const store = useRouterStore()
+    store.setKeepAliveName(['main-pg'])
+    expect(store.getKeepAliveRouteNames).toEqual(['main-pg'])
+  })
+
+  test('should insertkeepAliveName correctly with string', () => {
+    const store = useRouterStore()
+    store.insertKeepAliveName('main-pg')
+    expect(store.getKeepAliveRouteNames).toEqual(['main-pg'])
+  })
+
+  test('should insertkeepAliveName correctly width array', () => {
+    const store = useRouterStore()
+    store.insertKeepAliveName(['main-pg'])
+    expect(store.getKeepAliveRouteNames).toEqual(['main-pg'])
+  })
+
+  test('should removekeepAliveName correctly with string', () => {
+    const store = useRouterStore()
+    store.insertKeepAliveName('main-pg')
+    store.insertKeepAliveName('main1-pg')
+    store.removeKeepAliveName('main-pg')
+    expect(store.getKeepAliveRouteNames).toEqual(['main1-pg'])
+  })
+
+  test('should removekeepAliveName correctly width array', () => {
+    const store = useRouterStore()
+    store.insertKeepAliveName('main-pg')
+    store.insertKeepAliveName('main1-pg')
+    store.removeKeepAliveName(['main-pg', 'main1-pg'])
+    expect(store.getKeepAliveRouteNames).toEqual([])
+  })
+
+  test('should set clear cacheMethods return with one', () => {
+    const store = useRouterStore()
+    store.setCacheMethods({} as any)
+    store.insertCachedRoute({ name: 'a' })
+    expect(store.getCachedRoutes).toEqual([{ name: 'a' }])
+  })
+
+  test('should set clear cacheMethods return with one', () => {
+    const store = useRouterStore()
+    store.setCacheMethods({
+      getter: () => JSON.parse(sessionStorage.getItem('store') ?? '[]'),
+      setter: value => sessionStorage.setItem('store', JSON.stringify(value))
+    })
+    store.insertCachedRoute({ name: 'a' })
+    store.clearDynamicRouters()
+    expect(store.getCachedRoutes).toEqual([])
+  })
+
+  test('should set confirmToLeaveMethod correctly', () => {
+    const store = useRouterStore()
+    const data = new VmoStore<{ routes: any[] }>({
+      namespace: 'router:test',
+      dataProps: {
+        routes: {
+          type: String,
+          default: () => [],
+          storge: 'sessionStorage'
+        }
+      }
+    })
+    store.setCacheMethods({
+      setter: routes => {
+        return data.setData('routes', routes)
+      },
+      getter: () => {
+        return data.getData('routes')
+      }
+    })
+    const method = async meta => true
+    store.setConfirmToLeaveMethod(method)
+    expect(store.getConfirmToLeaveMethod).toEqual(method)
+  })
 })

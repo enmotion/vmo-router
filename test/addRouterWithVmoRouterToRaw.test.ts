@@ -38,7 +38,7 @@ vi.mock('./store', () => ({
 describe('addRouterWithVmoRouterToRaw', () => {
   it('should throw error if routeLocationNamedRaw is not provided', () => {
     expect(() => {
-      addRouterWithVmoRouterToRaw(null, mockPageTemplates, mockRouter)
+      addRouterWithVmoRouterToRaw(null, mockPageTemplates, mockRouter.$instance)
     }).toThrow()
   })
 
@@ -55,7 +55,7 @@ describe('addRouterWithVmoRouterToRaw', () => {
 
   it('should throw error if template is not provided', () => {
     expect(() => {
-      addRouterWithVmoRouterToRaw({ name: 'TestPage' }, mockPageTemplates, mockRouter)
+      addRouterWithVmoRouterToRaw({ name: 'TestPage' }, mockPageTemplates, mockRouter.$instance)
     }).toThrow()
   })
 
@@ -64,7 +64,7 @@ describe('addRouterWithVmoRouterToRaw', () => {
       addRouterWithVmoRouterToRaw(
         { name: 'TestPage', template: { route: { path: '/test' } } },
         mockPageTemplates,
-        mockRouter
+        mockRouter.$instance
       )
     }).toThrow()
   })
@@ -74,7 +74,7 @@ describe('addRouterWithVmoRouterToRaw', () => {
       addRouterWithVmoRouterToRaw(
         { name: 'TestPage', template: { pageKey: 'TestPage' } },
         mockPageTemplates,
-        mockRouter
+        mockRouter.$instance
       )
     }).toThrow()
   })
@@ -84,7 +84,7 @@ describe('addRouterWithVmoRouterToRaw', () => {
       addRouterWithVmoRouterToRaw(
         { name: 'TestPage', template: { pageKey: 'NotFoundPage', route: { path: '/test' } } },
         mockPageTemplates,
-        mockRouter
+        mockRouter.$instance
       )
     }).toThrow()
   })
@@ -94,7 +94,7 @@ describe('addRouterWithVmoRouterToRaw', () => {
       addRouterWithVmoRouterToRaw(
         { name: '', template: { pageKey: 'ChildPage', route: { path: '' } } },
         mockPageTemplates,
-        mockRouter
+        mockRouter.$instance
       )
     }).toThrow()
   })
@@ -110,7 +110,7 @@ describe('addRouterWithVmoRouterToRaw', () => {
         }
       },
       mockPageTemplates,
-      mockRouter
+      mockRouter.$instance
     )
 
     expect(addRouteSpy).toHaveBeenCalledWith({
@@ -130,7 +130,7 @@ describe('addRouterWithVmoRouterToRaw', () => {
         template: { pageKey: 'SampleB', parent: 'ParentPage', route: { path: '/test-child' } }
       },
       mockPageTemplates,
-      mockRouter
+      mockRouter.$instance
     )
 
     expect(addRouteSpy).toHaveBeenCalledWith('ParentPage', {
@@ -150,7 +150,7 @@ describe('addRouterWithVmoRouterToRaw', () => {
         template: { pageKey: 'SampleB', parent: 'ParentPage', route: { path: '/test-child' } }
       },
       mockPageTemplates,
-      mockRouter
+      mockRouter.$instance
     )
 
     expect(addRouteSpy).toHaveBeenCalledWith('ParentPage', {
@@ -167,7 +167,7 @@ describe('addRouterWithVmoRouterToRaw', () => {
     addRouterWithVmoRouterToRaw(
       { name: 'TestPage', template: { pageKey: 'SampleC', route: { path: 'test' } } },
       mockPageTemplates,
-      mockRouter
+      mockRouter.$instance
     )
     expect(addRouteSpy).toHaveBeenCalledWith({
       name: 'TestPage',

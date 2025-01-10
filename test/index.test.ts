@@ -33,7 +33,12 @@ describe('createRouter', () => {
     // 重置所有模拟函数
     vi.clearAllMocks()
     setActivePinia(createPinia())
+
     mockRouterStore = useRouterStore()
+    mockRouterStore.setCacheMethods({
+      getter: () => JSON.parse(sessionStorage.getItem('store') ?? '[]'),
+      setter: value => sessionStorage.setItem('store', JSON.stringify(value))
+    })
   })
 
   it('should create a router instance with proxy methods', () => {
@@ -126,6 +131,7 @@ describe('createRouter', () => {
 
   it('should only cached one route', async () => {
     router = createRouter(routerOptions, templatePool, mockRouterStore)
+    sessionStorage.setItem('store', JSON.stringify([]))
     mockRouterStore.setMutipleCatch(false)
     await router.push({ name: 'sample-b', template: { pageKey: 'SampleB', route: { path: 'sampl-b' } } })
     await router.push({ name: 'sample-b1', template: { pageKey: 'SampleB', route: { path: 'sampl-b1' } } })
@@ -134,22 +140,22 @@ describe('createRouter', () => {
     ])
   })
 
-  //   it('should correctly handle beforeEach with store', async () => {
-  //     router = createRouter(routerOptions, templatePool, mockRouterStore)
-  //     const guard = vi.fn()
+  // it('should correctly handle beforeEach with store', async () => {
+  //   router = createRouter(routerOptions, templatePool, mockRouterStore)
+  //   const guard = vi.fn()
 
-  //     await router.beforeEach(guard)
+  //   await router.beforeEach(guard)
 
-  //     const to = { path: '/about' }
-  //     const from = { path: '/' }
-  //     const next = vi.fn()
+  //   const to = { path: '/about' }
+  //   const from = { path: '/' }
+  //   const next = vi.fn()
 
-  //     // 模拟路由守卫调用
-  //     const wrappedGuard = (router as any).beforeEach.mock.calls[0][0]
-  //     await wrappedGuard(to, from, next)
+  //   // 模拟路由守卫调用
+  //   const wrappedGuard = (router as any).beforeEach.mock.calls[0][0]
+  //   await wrappedGuard(to, from, next)
 
-  //     expect(mockRouterStore.setRouteToLeaveDisabled).toHaveBeenCalledWith(false)
-  //     expect(guard).toHaveBeenCalledWith(to, from, next)
-  //     expect(next).toHaveBeenCalled()
-  //   })
+  //   expect(mockRouterStore.setRouteToLeaveDisabled).toHaveBeenCalledWith(false)
+  //   expect(guard).toHaveBeenCalledWith(to, from, next)
+  //   expect(next).toHaveBeenCalled()
+  // })
 })

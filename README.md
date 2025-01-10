@@ -320,10 +320,12 @@ The `store` `actions` are as follows:
 store.insertCachedRoute(to: RouteToRaw)
 // Remove cached route table
 store.removeCachedRoute(name: string)
+// set keepAlive
+store.setKeepAliveName(name: string|string[]),
 // Add `keepAlive`
-store.insertKeepAliveNames(name: string)
+store.insertKeepAliveName(name: string|string[])
 // Remove `keepAlive`
-store.removeKeepAliveNames(name: string)
+store.removeKeepAliveName(name: string|string[])
 // Set the current caching mode, multi-cache or single cache, true for multi-cache
 store.setMutipleCatch(mutipleCatch: boolean)
 // Set whether to prompt when leaving a page and whether to prevent the browser's default refresh, return, and navigation away from the page behavior. This can be used within individual pages.
