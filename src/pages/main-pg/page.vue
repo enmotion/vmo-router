@@ -25,7 +25,7 @@
             v-for="(item, index) in store.getKeepAliveRouteNames"
             :key="item + index"
             class="h-[30px] px-[20px] flex flex-row items-center border cursor-pointer hover:bg-red-600"
-            @click="store.removeKeepAliveNames(item)">
+            @click="store.removeKeepAliveName(item)">
             {{ item }}
           </span>
         </div>
