@@ -223,7 +223,7 @@ export function generateRouter() {
   router.beforeEach((to, from) => {
     console.log(to)
     if (to.meta.keepAlive) {
-      store.insertKeepAliveNames(to.name as string) // 将路由名 塞入 keepAlive 名单
+      store.insertKeepAliveName(to.name as string) // 将路由名 塞入 keepAlive 名单
     }
     if (to.matched.length == 0) {
       return { name: 'error-404' }

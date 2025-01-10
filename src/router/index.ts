@@ -37,7 +37,7 @@ export function generateRouter() {
   // store.setMutipleCatch(false)
   router.beforeEach((to, from) => {
     if (to.meta.keepAlive) {
-      store.insertKeepAliveNames(to.name as string)
+      store.insertKeepAliveName(to.name as string)
     }
     if (to.matched.length == 0) {
       return { name: 'error-404' }

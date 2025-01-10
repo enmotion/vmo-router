@@ -231,7 +231,7 @@ export function generateRouter() {
   router.beforeEach((to, from) => {
     console.log(to)
     if (to.meta.keepAlive) {
-      store.insertKeepAliveNames(to.name as string) // Add the route name to the keepAlive list
+      store.insertKeepAliveName(to.name as string) // Add the route name to the keepAlive list
     }
     if (to.matched.length === 0) {
       return { name: 'error-404' }
