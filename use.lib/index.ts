@@ -2,7 +2,7 @@
  * @Author: enmotion
  * @Date: 2024-12-05 23:19:20
  * @Last Modified by: enmotion
- * @Last Modified time: 2024-12-21 21:45:53
+ * @Last Modified time: 2025-03-10 15:14:22
  */
 import * as VueRouter from 'vue-router'
 import {
@@ -68,14 +68,14 @@ function createRouter<META extends Record<string, any>>(
   options: RouterOptions,
   template: Record<string, RouteRecordRaw>,
   store?: RouterStore.PiniaStore<VmoRouteToRaw<META>>
-) {
+):VmoProxyRouter<META> {
   const _router: Router = VueRouter.createRouter(options)
   reloadRoutes((store?.getCachedRoutes ?? []) as VmoRouteToRaw<META>[])
   /**
    * 劫持路由守卫的创建过程
    * @param guard 用户自定义的路由守卫方法
    */
-  async function beforeEach(guard: VmoNavigationGuard) {
+  async function beforeEach(guard: VmoNavigationGuard):Promise<void> {
     const wrapGuard: NavigationGuard = async (to, from) => {
       //... 劫持守卫的方法内容可以写在这里
       try {
@@ -97,7 +97,7 @@ function createRouter<META extends Record<string, any>>(
    * @param to 目标路由
    * @returns
    */
-  function push(to: VmoRouteToRaw<META>) {
+  function push(to: VmoRouteToRaw<META>):void {
     try {
       _handleRouteNavigation('push', to)
     } catch (err) {
@@ -109,7 +109,7 @@ function createRouter<META extends Record<string, any>>(
    * @param to 目标路由
    * @returns
    */
-  function replace(to: VmoRouteToRaw<META>) {
+  function replace(to: VmoRouteToRaw<META>):void {
     try {
       _handleRouteNavigation('replace', to)
     } catch (err) {
@@ -123,7 +123,7 @@ function createRouter<META extends Record<string, any>>(
    * @param autoAddToRouter
    * @returns
    */
-  function _handleRouteNavigation(method: 'push' | 'replace', to: VmoRouteToRaw<META>) {
+  function _handleRouteNavigation(method: 'push' | 'replace', to: VmoRouteToRaw<META>):void {
     try {
       // name 存在，且当前路由中没有此路由的情况，则会进行路由加载, 等待成功后，再进行跳转
       if (!!to.name && !_router.hasRoute(to.name)) {
@@ -147,7 +147,7 @@ function createRouter<META extends Record<string, any>>(
    * @param to 需要动态新增的路由配置
    * @returns
    */
-  async function addRouter(to: VmoRouteToRaw<META>) {
+  async function addRouter(to: VmoRouteToRaw<META>):Promise<void|boolean> {
     try {
       // 动态的添加路由, 该方法会通过 to 对象的设置，动态实例一个路由，并添加到路由表中
       return addRouterWithVmoRouterToRaw(to, template, _router)
@@ -161,7 +161,7 @@ function createRouter<META extends Record<string, any>>(
    * @param name
    * @returns
    */
-  function removeRoute(name: string) {
+  function removeRoute(name: string):boolean|void {
     store?.removeCachedRoute(name) // 移除路由缓存表，并非keepAlive
     return _router.hasRoute(name as string) && _router.removeRoute(name as string) // 从路由中移除
   }
@@ -169,7 +169,7 @@ function createRouter<META extends Record<string, any>>(
    * 重载所需动态路由 批量操作
    * @param reloads
    */
-  async function reloadRoutes(reloads: VmoRouteToRaw<META>[]) {
+  async function reloadRoutes(reloads: VmoRouteToRaw<META>[]):Promise<void> {
     try {
       // 先操作没有父路由的，再操作需要父路由的路由
       const sortedReloads = reloads.sort((a, b) => (a.template?.parent ? 1 : -1) - (b.template?.parent ? 1 : -1))
@@ -191,7 +191,7 @@ function createRouter<META extends Record<string, any>>(
     }
   }
 
-  function clearRoutes(all: boolean = false) {
+  function clearRoutes(all: boolean = false):void {
     if (all) {
       _router.clearRoutes() // 如果是全面清除，则会直接清空所有的路由缓存
     } else {

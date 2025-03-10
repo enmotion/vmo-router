@@ -2,7 +2,7 @@
  * @Author: enmotion
  * @Date: 2023-11-09 10:36:24
  * @Last Modified by: enmotion
- * @Last Modified time: 2024-12-18 10:07:46
+ * @Last Modified time: 2025-03-10 15:17:03
  * 路由全局状态管理器, 基于 pinia 实现
  */
 import { pluck } from 'ramda'
@@ -53,7 +53,7 @@ export function useRouterStore<RouteToRaw extends Record<string, any>>() {
        * 添加路由至路由表缓存
        * @param to
        */
-      insertCachedRoute(to: RouteToRaw) {
+      insertCachedRoute(to: RouteToRaw):void {
         // console.log(to,'sss')
         ;(this.cachedRoutes as RouteToRaw[]) = this.getCachedRoutes as RouteToRaw[]
         if (!pluck('name', this.getCachedRoutes).includes(to.name)) {
@@ -67,7 +67,7 @@ export function useRouterStore<RouteToRaw extends Record<string, any>>() {
        * 移除路由表缓存
        * @param name
        */
-      removeCachedRoute(name: string) {
+      removeCachedRoute(name: string):void {
         ;(this.cachedRoutes as RouteToRaw[]) = this.getCachedRoutes as RouteToRaw[]
         ;(this.cachedRoutes as RouteToRaw[]) = this.getCachedRoutes.filter(route => route.name != name) as RouteToRaw[]
         this.cacheMethods?.setter(this.cachedRoutes as RouteToRaw[])
@@ -77,14 +77,14 @@ export function useRouterStore<RouteToRaw extends Record<string, any>>() {
        * 直接设置缓存路由名称
        * @param name
        */
-      setKeepAliveName(name: string | string[]) {
+      setKeepAliveName(name: string | string[]):void {
         this.keepAliveRouteNames = Array.isArray(name) ? name : [name]
       },
       /**
        * 添加 keepAlive 缓存名
        * @param name
        */
-      insertKeepAliveName(name: string | string[]) {
+      insertKeepAliveName(name: string | string[]):void {
         const names = Array.isArray(name) ? name : [name]
         this.keepAliveRouteNames = Array.from(new Set([...this.keepAliveRouteNames, ...names]))
         this.keepAliveRouteNames = !this.keepAliveMax
@@ -95,7 +95,7 @@ export function useRouterStore<RouteToRaw extends Record<string, any>>() {
        * 移除 keepAlive 缓存名
        * @param name
        */
-      removeKeepAliveName(name: string | string[]) {
+      removeKeepAliveName(name: string | string[]):void {
         const names = Array.isArray(name) ? name : [name]
         this.keepAliveRouteNames = this.keepAliveRouteNames.filter(item => !names.includes(item))
       },
@@ -104,7 +104,7 @@ export function useRouterStore<RouteToRaw extends Record<string, any>>() {
        * @param mutipleCatch 是否开启
        * @returns {void}
        */
-      setMutipleCatch(mutipleCatch: boolean) {
+      setMutipleCatch(mutipleCatch: boolean):void {
         this.mutipleCatch = mutipleCatch
       },
       /**
@@ -112,7 +112,7 @@ export function useRouterStore<RouteToRaw extends Record<string, any>>() {
        * @param browserBeforeunloadDisabled 是否禁止浏览器默认刷新，返回，导致离开页面的行为
        * @returns {void}
        */
-      setBrowserBeforeunloadDisabled(browserBeforeunloadDisabled: boolean) {
+      setBrowserBeforeunloadDisabled(browserBeforeunloadDisabled: boolean):void {
         this.browserBeforeunloadDisabled = browserBeforeunloadDisabled
       },
       /**
@@ -120,7 +120,7 @@ export function useRouterStore<RouteToRaw extends Record<string, any>>() {
        * @param routeToLeaveDisabled 设置触发路由离开是否提示
        * @returns {void}
        */
-      setRouteToLeaveDisabled(routeToLeaveDisabled: boolean) {
+      setRouteToLeaveDisabled(routeToLeaveDisabled: boolean):void {
         this.routeToLeaveDisabled = routeToLeaveDisabled
       },
       /**
@@ -128,7 +128,7 @@ export function useRouterStore<RouteToRaw extends Record<string, any>>() {
        * @param max 缓存最大数
        * @returns {void}
        */
-      setKeepAliveMax(max: number = 0) {
+      setKeepAliveMax(max: number = 0):void {
         this.keepAliveMax = Math.abs(Math.round(max))
       },
       /**
@@ -136,7 +136,7 @@ export function useRouterStore<RouteToRaw extends Record<string, any>>() {
        * @param max 缓存最大数
        * @returns {void}
        */
-      clearDynamicRouters() {
+      clearDynamicRouters():void {
         this.cachedRoutes = []
         this.cacheMethods?.setter?.(this.cachedRoutes as RouteToRaw[])
       },
@@ -144,7 +144,7 @@ export function useRouterStore<RouteToRaw extends Record<string, any>>() {
        * 设置缓存所需方法
        * @param methods
        */
-      setCacheMethods(methods: RouterStore.CacherMethods<RouteToRaw>) {
+      setCacheMethods(methods: RouterStore.CacherMethods<RouteToRaw>):void {
         this.cacheMethods = methods
       },
       /**
@@ -153,7 +153,7 @@ export function useRouterStore<RouteToRaw extends Record<string, any>>() {
        */
       setConfirmToLeaveMethod(
         method: (meta: RouterStore.ExtractRouteInfoType<RouteToRaw>) => Promise<boolean> | boolean
-      ) {
+      ):void{
         this.confirmToLeaveMethod = method
       }
     }

@@ -2,7 +2,7 @@
  * @Author: enmotion
  * @Date: 2023-11-07 15:43:42
  * @Last Modified by: enmotion
- * @Last Modified time: 2024-12-14 00:47:58
+ * @Last Modified time: 2025-03-10 15:15:26
  */
 
 import type { RouteRecordRaw, Router } from 'vue-router'
@@ -75,7 +75,7 @@ export function addRouterWithVmoRouterToRaw<META extends Record<string, any>>(
   routeLocationNamedRaw: VmoRouteToRaw<META>,
   pageTemplates: { [key: string]: RouteRecordRaw },
   routerInstance?: Router
-) {
+):void{
   try {
     // 1. 验证路由生成配置 VmoRouteToRaw<META> 是否合法正确
     if (validateVmoRouterToRaw(routeLocationNamedRaw, pageTemplates)) {
@@ -128,7 +128,7 @@ export function addRouterWithVmoRouterToRaw<META extends Record<string, any>>(
  * 2.生产时，内存空间被不断的过度消耗，
  * 所以目前采用更为轻巧的模式，只是浅拷贝，保持热更的同时，也能告诉路由缓存对应的内容;
  */
-async function _routePageComponentLoader(this: any, component: any) {
+async function _routePageComponentLoader(this: any, component: any):Promise<Record<string,any>> {
   const context = this
   const module = await component()
   // 保守方法;
@@ -150,7 +150,7 @@ async function _routePageComponentLoader(this: any, component: any) {
 export function usePreventBrowserBeforeunloadBehavior(
   browserBeforeunloadDisabled: boolean = true,
   message: string = ''
-) {
+):void{
   const store = useRouterStore()
   store.setBrowserBeforeunloadDisabled(browserBeforeunloadDisabled)
   const instance = getCurrentInstance()
