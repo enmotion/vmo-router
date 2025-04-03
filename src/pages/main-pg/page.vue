@@ -152,7 +152,7 @@ export default defineComponent({
     ]
     function routerTo(item: VmoRouteMenuItemRaw<{ label: string }, Record<string, any>>) {
       console.log(item.to)
-      router.push(item.to)
+      !!item.to && router.push(item.to)
       routers.value = router?.getRoutes?.() ?? []
       // router.back()
       console.log(router?.getRoutes?.())
