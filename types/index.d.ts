@@ -67,7 +67,7 @@ export declare type VmoRouteMenuItemRaw<ITEM extends Record<string, any>, META e
   ITEM,
   'to' | 'children'
 > & {
-  to: VmoRouteToRaw<META>
+  to?: VmoRouteToRaw<META>
   children?: VmoRouteMenuItemRaw<ITEM, META>[] // 是否有子菜单,树状递归结构
 }
 /**
