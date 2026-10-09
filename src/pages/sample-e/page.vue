@@ -6,7 +6,6 @@
       @click="
         router.push({
           name: 'sample-s2',
-          params: { name: 'skke' },
           template: {
             pageKey: 'Error404',
             parent: 'main',

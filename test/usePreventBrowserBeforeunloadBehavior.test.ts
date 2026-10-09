@@ -109,7 +109,7 @@ describe('usePreventBrowserBeforeunloadBehavior', () => {
     preventNav(event)
     // 检查事件是否被正确处理
     expect(event.preventDefault).toHaveBeenCalled()
-    expect(event.returnValue).toBe('')
+    expect(event.returnValue).toBe('Are you sure?')
 
     wrapper.unmount()
   })
@@ -194,7 +194,7 @@ describe('usePreventBrowserBeforeunloadBehavior', () => {
     preventNav(event)
     // 检查事件是否被正确处理
     expect(event.preventDefault).toHaveBeenCalled()
-    expect(event.returnValue).toBe('')
+    expect(event.returnValue).toBe('Are you sure?')
     wrapper.unmount()
   })
 
@@ -219,7 +219,7 @@ describe('usePreventBrowserBeforeunloadBehavior', () => {
     preventNav(event)
     // 检查事件是否被正确处理
     expect(event.preventDefault).toHaveBeenCalled()
-    expect(event.returnValue).toBe('')
+    expect(event.returnValue).toBe('Are you sure?')
     wrapper.unmount()
   })
 
@@ -244,7 +244,7 @@ describe('usePreventBrowserBeforeunloadBehavior', () => {
     preventNav(event)
     // 检查事件是否被正确处理
     expect(event.preventDefault).toHaveBeenCalled()
-    expect(event.returnValue).toBe('')
+    expect(event.returnValue).toBe('Are you sure?')
     wrapper.unmount()
   })
 })

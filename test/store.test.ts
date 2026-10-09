@@ -229,3 +229,28 @@ describe('useRouterStore', () => {
     expect(store.getConfirmToLeaveMethod).toEqual(method)
   })
 })
+
+describe('cache consistency regressions', () => {
+  beforeEach(() => setActivePinia(createPinia()))
+  test('updates params for the same cached route', () => {
+    const store = useRouterStore()
+    store.insertCachedRoute({ name: 'a', params: { id: '1' } })
+    store.insertCachedRoute({ name: 'a', params: { id: '2' } })
+    expect(store.getCachedRoutes).toEqual([{ name: 'a', params: { id: '2' } }])
+  })
+  test('switching to single mode collapses a previously cached name', () => {
+    const store = useRouterStore()
+    store.insertCachedRoute({ name: 'a' })
+    store.insertCachedRoute({ name: 'b' })
+    store.setMutipleCatch(false)
+    store.insertCachedRoute({ name: 'a' })
+    expect(store.getCachedRoutes).toEqual([{ name: 'a' }])
+  })
+  test('default confirmation permits leaving and removal supports a getter-only cache', async () => {
+    const store = useRouterStore()
+    expect(await store.getConfirmToLeaveMethod!({})).toBe(true)
+    store.setCacheMethods({ getter: () => [{ name: 'a' }] } as any)
+    store.removeCachedRoute('a')
+    expect(store.getCachedRoutes).toEqual([])
+  })
+})

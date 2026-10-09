@@ -75,6 +75,6 @@ export declare type VmoRouteMenuItemRaw<ITEM extends Record<string, any>, META e
  * 主要是修改了原函数的参数，去掉了 next
  */
 export type VmoNavigationGuard = (
-  from: RouteLocationNormalized,
-  to: RouteLocationNormalized
-) => boolean | Record<string, any>
+  to: RouteLocationNormalized,
+  from: RouteLocationNormalized
+) => import('vue-router').NavigationGuardReturn | Promise<import('vue-router').NavigationGuardReturn>

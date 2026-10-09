@@ -111,14 +111,15 @@ export default defineComponent({
       slotHtml.value = el.outerHTML;
     }
     function enter(el:Element,done:Function){
-      console.log(orgSize.value.height,'orgSize.value.height')
       isAimating.value = false;
       orgSize.value.height = slotSizeWrap.value.offsetHeight+'px';
       orgSize.value.width = slotSizeWrap.value.offsetWidth+'px';
       setTimeout(function(){
         orgSize.value.height='none'
         orgSize.value.width='none'
-        // showSlotSizeWrap.value = false;
+        showSlotSizeWrap.value = false;
+        slotHtml.value = '';
+        done();
       },parseFloat(transDuration.value.enter)*1000)
     }
     function beforeLeave(el:Element|HTMLElement){

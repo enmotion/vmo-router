@@ -31,6 +31,7 @@ export function loadPageTemplateByImport(templates: Record<string, unknown>): Re
   pageKeys.forEach((pagename: string) => {
     const content = templates[pagename]
     const name = upperFirst(camelCase(pagename.split('/').splice(-2, 1)[0])) //获取相关页面所在文件夹位置,仅取直接父文夹名为模版 Key 名称;
+    if (Object.prototype.hasOwnProperty.call(pages, name)) throw new Error(`VmoRouter: duplicate template key: ${name}`)
     pages[name] = (content as { default?: any }).default || content
   })
   return pages
@@ -54,7 +55,7 @@ export function validateVmoRouterToRaw<META extends Record<string, any>>(
     [
       routeLocationNamedRaw?.name,
       routeLocationNamedRaw?.template?.route?.path,
-      pageTemplates[routeLocationNamedRaw?.template?.pageKey as string]
+      pageTemplates?.[routeLocationNamedRaw?.template?.pageKey as string]
     ].filter((item: any) => isNil(item) || isEmpty(item)).length == 0
   )
 }
@@ -81,13 +82,12 @@ export function addRouterWithVmoRouterToRaw<META extends Record<string, any>>(
     if (validateVmoRouterToRaw(routeLocationNamedRaw, pageTemplates)) {
       // 2. merge 最终的模版数据
       const prototype = mergeDeepRight(
-        clone(pageTemplates[routeLocationNamedRaw?.template?.pageKey as string]),
-        routeLocationNamedRaw?.template?.route ?? {}
+        clone(pageTemplates?.[routeLocationNamedRaw?.template?.pageKey as string]),
+        routeLocationNamedRaw.template!.route
       )
-      if (!isNil(prototype.component)) {
-        // console.log('sss1', typeof prototype.component == 'function')
+      if (!isNil(prototype.component) || prototype.components || prototype.redirect || prototype.children) {
         prototype.component =
-          typeof prototype.component == 'function'
+          typeof prototype.component == 'function' && !('displayName' in prototype.component) && !('props' in prototype.component)
             ? _routePageComponentLoader.bind({ name: routeLocationNamedRaw.name }, prototype.component)
             : prototype.component // 指定上下文做好异步加载准备
         prototype.name = routeLocationNamedRaw.name
@@ -99,18 +99,20 @@ export function addRouterWithVmoRouterToRaw<META extends Record<string, any>>(
           ) {
             // 存在指定的父级路由，且父级路由已经装载
             prototype.path = prototype.path.replace(/^\/+/g, '') // 如果存在父级路由，则需要去除地址中以 / 开头的情况
-            routerInstance.addRoute(routeLocationNamedRaw.template?.parent, prototype) // 在指定的父路由下，添加路由
+            routerInstance.addRoute(routeLocationNamedRaw.template?.parent, prototype as RouteRecordRaw) // 在指定的父路由下，添加路由
           } else {
             // 否则 当作根路由装载，忽视其可能的父级路由情况
             prototype.path = !/^\/.*/.test(prototype.path) ? '/' + prototype.path : prototype.path // 如果不存在父级别路由，则需要检查是否携带/开头，如果没有，则需要补充
-            routerInstance.addRoute(prototype) // 直接添加路由
+            routerInstance.addRoute(prototype as RouteRecordRaw) // 直接添加路由
           }
         }
+      } else {
+        throw new Error('VmoRouter: template requires a component, components, redirect or children')
       }
     } else {
       throw new Error(`VmoRouter[ERROR]: 创建动态路由失败:
         \n [routeLocationNamedRaw?.name]:${routeLocationNamedRaw?.name as string}
-        \n PGS[routeLocationNamedRaw?.template]:${pageTemplates[routeLocationNamedRaw?.template?.pageKey as string]}
+        \n PGS[routeLocationNamedRaw?.template]:${pageTemplates?.[routeLocationNamedRaw?.template?.pageKey as string]}
         \n 请补全以上参数`)
     }
   } catch (err) {
@@ -165,6 +167,7 @@ export function usePreventBrowserBeforeunloadBehavior(
   function preventNav(event: BeforeUnloadEvent) {
     if (!store.getBrowserBeforeunloadDisabled && !store.getRouteToLeaveDisabled) return
     event.preventDefault()
+    event.returnValue = message
     return message
   }
 }

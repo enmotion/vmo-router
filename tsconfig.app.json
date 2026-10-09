@@ -5,7 +5,6 @@
   "types": ["vite/client", "node"],
   "compilerOptions": {
     "composite": true,
-    "baseUrl": ".",
     "paths": {
       "@src/*": ["./src/*"],
       "@typs/*": ["./types/*"]

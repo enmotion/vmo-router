@@ -1,161 +1,152 @@
-// router.test.ts
-import { mergeAll } from 'ramda'
-import { describe, it, expect, beforeEach as setupBeforeEach, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
-import { createRouter, useRouter } from '../use.lib/index'
-import { createWebHistory } from 'vue-router'
-import templatePool from '../src/pages/index'
+import { defineComponent, h } from 'vue'
+import { mount } from '@vue/test-utils'
+import { createRouter, createMemoryHistory, isNavigationFailure, useRouter } from '../use.lib/index'
 import { useRouterStore } from '../use.lib/store'
-
 import type { VmoRouteToRaw } from '../types'
-import type { VmoProxyRouter } from '../use.lib/index'
-import type { Router, RouterOptions } from 'vue-router'
-// 模拟 RouterStore
 
-// 模拟 addRouterWithVmoRouterToRaw
-vi.mock('./lib', () => ({
-  addRouterWithVmoRouterToRaw: vi.fn(async to => {
-    // 模拟添加路由成功
-    return true
-  })
-}))
-
-// 模拟路由配置
-const routerOptions: RouterOptions = {
-  history: createWebHistory(),
-  routes: [mergeAll([templatePool.MainPg, { children: [templatePool.SampleA] }])]
+const component = { render: () => h('div') }
+const pool = { Page: { path: '/template', component } }
+const to = (name: string, parent?: string): VmoRouteToRaw<Record<string, any>> => ({
+  name, template: { pageKey: 'Page', parent, route: { path: name } }
+})
+function setup() {
+  const store = useRouterStore()
+  const router = createRouter({ history: createMemoryHistory(), routes: [
+    { path: '/', name: 'home', component }, { path: '/other', name: 'other', component }
+  ] }, pool, store)
+  return { router, store }
 }
+beforeEach(() => setActivePinia(createPinia()))
 
-describe('createRouter', () => {
-  let router: VmoProxyRouter<Record<string, any>>
-  let mockRouterStore: ReturnType<typeof useRouterStore>
-  setupBeforeEach(() => {
-    // 重置所有模拟函数
-    vi.clearAllMocks()
-    setActivePinia(createPinia())
-
-    mockRouterStore = useRouterStore()
-    mockRouterStore.setCacheMethods({
-      getter: () => JSON.parse(sessionStorage.getItem('store') ?? '[]'),
-      setter: value => sessionStorage.setItem('store', JSON.stringify(value))
-    })
-  })
-
-  it('should create a router instance with proxy methods', () => {
-    router = createRouter(routerOptions, templatePool, mockRouterStore)
-    expect(router).toBeDefined()
+describe('router integration', () => {
+  it('awaits push and replace and preserves normal path navigation', async () => {
+    const { router, store } = setup()
     expect(router.$instance).toBeDefined()
-    expect(router.beforeEach).toBeDefined()
-    expect(router.push).toBeDefined()
-    expect(router.replace).toBeDefined()
-    expect(router.addRouter).toBeDefined()
-    expect(router.removeRoute).toBeDefined()
-    expect(router.reloadRoutes).toBeDefined()
-    expect(router.clearRoutes).toBeDefined()
+    await router.push(to('a'))
+    expect(router.currentRoute.value.name).toBe('a')
+    expect(store.getCachedRoutes).toEqual([to('a')])
+    await router.replace(to('b'))
+    expect(router.currentRoute.value.name).toBe('b')
+    await router.push('/')
+    await router.replace({ path: '/other' })
+    expect(router.currentRoute.value.name).toBe('other')
+    expect(store.getCachedRoutes.map(r => r.name)).toEqual(['a', 'b'])
+    expect(isNavigationFailure(await router.push({ name: 'other' }))).toBe(true)
   })
-
-  it('should correctly handle push navigation', async () => {
-    router = createRouter(routerOptions, templatePool, mockRouterStore)
-    const to: VmoRouteToRaw<Record<string, any>> = {
-      name: 'sample-b',
-      template: { pageKey: 'SampleB', route: { path: 'sampl-b' } }
-    }
-    // 模拟 _handleRouteNavigation
-    const pushMock = vi.spyOn(router, 'push')
-    await router.push(to)
-    expect(pushMock).toHaveBeenCalledWith(to)
+  it('rejects invalid additions without navigating or persisting', async () => {
+    const { router, store } = setup()
+    await router.push('/')
+    await expect(router.push({ name: 'missing' })).rejects.toThrow()
+    expect(router.currentRoute.value.name).toBe('home')
+    expect(store.getCachedRoutes).toEqual([])
+    router.addRouter(to('a'))
+    expect(() => router.addRouter(to('a'))).toThrow('already exists')
   })
-
-  it('should correctly handle replace navigation', async () => {
-    router = createRouter(routerOptions, templatePool, mockRouterStore)
-    const to: VmoRouteToRaw<Record<string, any>> = {
-      name: 'sample-b',
-      template: { pageKey: 'SampleB', route: { path: 'sampl-b' } }
-    }
-    // 模拟 _handleRouteNavigation
-    const replaceMock = vi.spyOn(router, 'replace')
-    await router.replace(to)
-    expect(replaceMock).toHaveBeenCalledWith(to)
+  it('keeps leave protection on cancellation, rejection and subsequent guard abort', async () => {
+    const { router, store } = setup()
+    await router.push('/')
+    const confirm = vi.fn().mockResolvedValue(false)
+    store.setConfirmToLeaveMethod(confirm)
+    store.setRouteToLeaveDisabled(true)
+    expect(isNavigationFailure(await router.push(to('a')))).toBe(true)
+    expect(isNavigationFailure(await router.push(to('a')))).toBe(true)
+    expect(confirm).toHaveBeenCalledTimes(2)
+    expect(store.getCachedRoutes).toEqual([])
+    expect(store.getRouteToLeaveDisabled).toBe(true)
+    confirm.mockRejectedValueOnce(new Error('cancel'))
+    expect(isNavigationFailure(await router.push('/other'))).toBe(true)
+    confirm.mockResolvedValue(true)
+    const unregister = router.beforeEach(async () => false)
+    expect(isNavigationFailure(await router.push('/other'))).toBe(true)
+    expect(store.getRouteToLeaveDisabled).toBe(true)
+    unregister()
+    await router.push('/other')
+    expect(store.getRouteToLeaveDisabled).toBe(false)
   })
-
-  it('should correctly handle push', async () => {
-    const addRouteSpy = vi.spyOn(mockRouterStore, 'insertCachedRoute')
-    router = createRouter(routerOptions, templatePool, mockRouterStore)
-    const to: VmoRouteToRaw<Record<string, any>> = {
-      name: 'sample-c',
-      template: { pageKey: 'SampleC', route: { path: 'sampl-c' } }
-    }
-    await router.push(to)
-    expect(addRouteSpy).toHaveBeenCalledWith(to)
+  it('supports guard redirects and exposes async guard errors', async () => {
+    const { router } = setup()
+    const stop = router.beforeEach((target, from) => {
+      expect(from.path).toBe('/')
+      return target.name === 'a' ? { name: 'other' } : true
+    })
+    await router.push(to('a'))
+    expect(router.currentRoute.value.name).toBe('other')
+    stop()
+    router.onError(() => {})
+    router.beforeEach(async () => { throw new Error('guard failed') })
+    await expect(router.push('/')).rejects.toThrow('guard failed')
   })
-
-  it('should correctly handle removeRoute', async () => {
-    const removeCachedRoute = vi.spyOn(mockRouterStore, 'removeCachedRoute')
-    router = createRouter(routerOptions, templatePool, mockRouterStore)
-    const name = 'home'
-    router.removeRoute(name)
-    expect(removeCachedRoute).toHaveBeenCalledWith(name)
-  })
-
-  it('should correctly handle clearRoutes with all=true', async () => {
-    router = createRouter(routerOptions, templatePool, mockRouterStore)
-    const clearRoutesMock = vi.spyOn(router.$instance, 'clearRoutes')
+  it('clears all dynamic registrations in single-cache mode while preserving static routes', async () => {
+    const { router, store } = setup()
+    store.setMutipleCatch(false)
+    await router.push(to('a'))
+    await router.push(to('b'))
+    await router.push('/')
+    expect(store.getCachedRoutes).toEqual([to('b')])
+    store.setKeepAliveName(['a', 'b'])
+    router.clearRoutes()
+    expect(router.hasRoute('a')).toBe(false)
+    expect(router.hasRoute('b')).toBe(false)
+    expect(router.hasRoute('home')).toBe(true)
+    expect(store.getCachedRoutes).toEqual([])
+    expect(store.getKeepAliveRouteNames).toEqual([])
     router.clearRoutes(true)
-    expect(clearRoutesMock).toHaveBeenCalled()
+    expect(router.getRoutes()).toEqual([])
   })
-
-  it('should correctly handle reloadRoutes', async () => {
-    router = await createRouter(routerOptions, templatePool, mockRouterStore)
-    console.log(useRouter(), 'aaaa')
-    const addRoute = vi.spyOn(router.$instance, 'addRoute')
-    const reloads: VmoRouteToRaw<Record<string, any>>[] = [
-      { name: 'sample-a1', template: { pageKey: 'SampleA', route: { path: 'sample-a1' } } },
-      { name: 'sample-b1', template: { pageKey: 'SampleB', route: { path: 'sample-b1' } } }
-    ]
-
-    await router.reloadRoutes(reloads)
-
-    expect(addRoute).toHaveBeenCalled()
-    // expect(mockRouterStore.insertCachedRoute).toHaveBeenCalledWith(reloads[1])
+  it('restores nested routes synchronously and handles arbitrary input order without mutation', async () => {
+    const store = useRouterStore()
+    const saved = [to('leaf', 'child'), to('child', 'root'), to('root')]
+    store.setCacheMethods({ getter: () => saved, setter: () => {} })
+    const { router } = setup()
+    expect(router.resolve({ name: 'leaf' }).path).toBe('/root/child/leaf')
+    expect(saved.map(r => r.name)).toEqual(['leaf', 'child', 'root'])
+    await router.push({ name: 'leaf' })
+    router.removeRoute('root')
+    expect(router.hasRoute('leaf')).toBe(false)
+    expect(store.getCachedRoutes).toEqual([])
+    router.removeRoute('unknown')
   })
-
-  it('should correctly handle clearRoutes', async () => {
-    const removeCachedRoute = vi.spyOn(mockRouterStore, 'removeCachedRoute')
-    router = createRouter(routerOptions, templatePool, mockRouterStore)
-    await router.push({ name: 'sample-b', template: { pageKey: 'SampleB', route: { path: 'sampl-b' } } })
-    await router.push({ name: 'sample-b1', template: { pageKey: 'SampleB', route: { path: 'sampl-b1' } } })
-    router.clearRoutes(false)
-    expect(removeCachedRoute).toHaveBeenCalledWith('sample-b')
-    expect(removeCachedRoute).toHaveBeenCalledWith('sample-b1')
+  it('validates a reload before changing existing routes and supports append', async () => {
+    const { router, store } = setup()
+    await router.push(to('a'))
+    await expect(router.reloadRoutes([to('b'), { name: 'bad' }])).rejects.toThrow()
+    expect(router.hasRoute('a')).toBe(true)
+    expect(router.hasRoute('b')).toBe(false)
+    await expect(router.reloadRoutes([to('b', 'missing')])).rejects.toThrow('parent')
+    await expect(router.reloadRoutes([to('b', 'c'), to('c', 'b')])).rejects.toThrow('parent')
+    await expect(router.reloadRoutes([to('b'), to('b')])).rejects.toThrow('already exists')
+    await router.reloadRoutes([to('b')], false)
+    expect(router.hasRoute('a')).toBe(true)
+    await router.reloadRoutes([to('c')])
+    expect(router.hasRoute('a')).toBe(false)
+    expect(router.hasRoute('c')).toBe(true)
+    expect(store.getCachedRoutes).toEqual([to('c')])
   })
-
-  it('should only cached one route', async () => {
-    router = createRouter(routerOptions, templatePool, mockRouterStore)
-    sessionStorage.setItem('store', JSON.stringify([]))
-    mockRouterStore.setMutipleCatch(false)
-    await router.push({ name: 'sample-b', template: { pageKey: 'SampleB', route: { path: 'sampl-b' } } })
-    await router.push({ name: 'sample-b1', template: { pageKey: 'SampleB', route: { path: 'sampl-b1' } } })
-    expect(mockRouterStore.getCachedRoutes).toEqual([
-      { name: 'sample-b1', template: { pageKey: 'SampleB', route: { path: 'sampl-b1' } } }
-    ])
+  it('persists the resolved params, query and hash when revisiting a dynamic route', async () => {
+    const { router, store } = setup()
+    const definition = to('detail')
+    definition.template!.route.path = 'detail/:id'
+    await router.push({ ...definition, params: { id: '1' }, query: { tab: 'a' }, hash: '#top' })
+    await router.push({ name: 'detail', params: { id: '2' }, query: { tab: 'b' }, hash: '#bottom' })
+    expect(store.getCachedRoutes[0]).toMatchObject({ params: { id: '2' }, query: { tab: 'b' }, hash: '#bottom' })
+    await router.push({ name: 'detail', params: { id: '3' } })
+    expect(store.getCachedRoutes[0].query).toEqual({})
+    expect(store.getCachedRoutes[0].hash).toBe('')
   })
-
-  // it('should correctly handle beforeEach with store', async () => {
-  //   router = createRouter(routerOptions, templatePool, mockRouterStore)
-  //   const guard = vi.fn()
-
-  //   await router.beforeEach(guard)
-
-  //   const to = { path: '/about' }
-  //   const from = { path: '/' }
-  //   const next = vi.fn()
-
-  //   // 模拟路由守卫调用
-  //   const wrappedGuard = (router as any).beforeEach.mock.calls[0][0]
-  //   await wrappedGuard(to, from, next)
-
-  //   expect(mockRouterStore.setRouteToLeaveDisabled).toHaveBeenCalledWith(false)
-  //   expect(guard).toHaveBeenCalledWith(to, from, next)
-  //   expect(next).toHaveBeenCalled()
-  // })
+  it('works without a store and injects the proxy into components', async () => {
+    const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/', component }] }, pool)
+    await router.push('/')
+    let injected: unknown
+    const wrapper = mount(defineComponent({ setup() { injected = useRouter(); return () => h('div') } }), {
+      global: { plugins: [router] }
+    })
+    expect(injected).toBe(router)
+    wrapper.unmount()
+    await router.push(to('a'))
+    router.clearRoutes()
+    expect(router.hasRoute('a')).toBe(false)
+    router.clearRoutes(true)
+  })
 })

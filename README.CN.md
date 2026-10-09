@@ -347,3 +347,12 @@ import type { RouterStore, Lazy, VmoRouteRecordRaw, VmoRouteToRaw, VmoRouteMenuI
 // VmoRouteMenuItemRaw<MENU,META> 路由菜单结构,此类型方便开发者可以扩展基于 vmo-router 的菜单
 //
 ```
+
+### 导航与动态路由生命周期
+
+- `push`、`replace` 返回导航 Promise，支持原生路径字符串和路径对象。调用方应 `await` 并处理拒绝及导航失败结果。
+- 离开保护独立于用户注册的 `beforeEach`；取消、确认异常或后续守卫阻断时保留保护，仅成功导航后解除。`beforeEach` 返回注销函数，支持异步守卫。
+- `addRouter` 同步注册动态路由，配置无效或名称重复时抛出错误。导航成功后才将动态路由写入持久化缓存；取消导航可能留下已注册但未持久化的路由。
+- `reloadRoutes(routes, needClear = true)` 返回 Promise。先检查全部配置和父子依赖，再替换动态路由；`false` 表示追加。缺少父路由、循环依赖或名称重复会拒绝，不修改现有路由表。存储 getter/setter 应由应用处理存储异常。
+- `clearRoutes()` 清除本库注册的动态路由，包括单缓存模式下未持久化的路由，保留静态路由；`clearRoutes(true)` 清空全部路由及缓存。直接通过 `$instance` 或原生 `addRoute` 注册的路由不属于本库的动态清单。
+- `npm test` 执行一次测试；`npm run coverage` 检查 `use.lib` 全部核心实现，语句、分支、函数、行覆盖率门槛均为 95%。

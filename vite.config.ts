@@ -15,11 +15,13 @@ export default defineConfig({
     port: 1980
   },
   test: {
+    restoreMocks: true,
     environment: 'happy-dom',
     coverage: {
       provider: 'v8',
+      thresholds: { statements: 95, branches: 95, functions: 95, lines: 95 },
       reporter: ['text', 'json', 'html'],
-      include: ['use.lib/'],
+      include: ['use.lib/**/*.ts'],
       reportsDirectory: './test/reports/unit/coverage'
       // exclude: ['node_modules/','postbu','dist/', 'src/**/*.d.ts', 'src/**/*.ts', 'src/**/*.vue', 'src/**/*.{test,spec}.ts']
     }

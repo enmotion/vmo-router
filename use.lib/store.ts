@@ -54,23 +54,21 @@ export function useRouterStore<RouteToRaw extends Record<string, any>>() {
        * @param to
        */
       insertCachedRoute(to: RouteToRaw):void {
-        // console.log(to,'sss')
-        ;(this.cachedRoutes as RouteToRaw[]) = this.getCachedRoutes as RouteToRaw[]
-        if (!pluck('name', this.getCachedRoutes).includes(to.name)) {
-          this.mutipleCatch
-            ? (this.cachedRoutes as RouteToRaw[]).push(to as RouteToRaw)
-            : ((this.cachedRoutes as RouteToRaw[]) = [to])
-          this.cacheMethods?.setter?.(this.cachedRoutes as RouteToRaw[])
-        }
+        const routes = this.getCachedRoutes as RouteToRaw[]
+        const index = routes.findIndex(route => route.name === to.name)
+        ;(this.cachedRoutes as RouteToRaw[]) = this.mutipleCatch
+          ? index < 0 ? [...routes, to] : routes.map((route, i) => i === index ? to : route)
+          : [to]
+        this.cacheMethods?.setter?.(this.cachedRoutes as RouteToRaw[])
       },
       /**
        * 移除路由表缓存
        * @param name
        */
-      removeCachedRoute(name: string):void {
+      removeCachedRoute(name: string | symbol):void {
         ;(this.cachedRoutes as RouteToRaw[]) = this.getCachedRoutes as RouteToRaw[]
         ;(this.cachedRoutes as RouteToRaw[]) = this.getCachedRoutes.filter(route => route.name != name) as RouteToRaw[]
-        this.cacheMethods?.setter(this.cachedRoutes as RouteToRaw[])
+        this.cacheMethods?.setter?.(this.cachedRoutes as RouteToRaw[])
         // 调用持久化方法
       },
       /**
