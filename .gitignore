@@ -26,3 +26,7 @@ test/reports/
 
 # Browser automation output
 .playwright-mcp/
+
+# VitePress generated output
+docs/.vitepress/cache/
+docs/.vitepress/dist/

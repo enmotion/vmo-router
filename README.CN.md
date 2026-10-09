@@ -1,5 +1,9 @@
 # vmo-router
 
+[在线文档](https://enmotion.github.io/vmo-router/) · [English](https://enmotion.github.io/vmo-router/en/) · [快速开始](docs/guide/getting-started.md) · [部署说明](docs/guide/deployment.md)
+
+首次 GitHub Pages 部署后在线站点可访问。本地阅读执行 `npm ci` 和 `npm run docs:dev`。完整文档以 `docs/` 中对应当前仓库实现的内容为准。
+
 `vmo-router` 是对 `vue-router` 进行二次封装的路由管理工具，旨在解决 `vue` `spa` 实际开发中 **动态路由配置** 复杂、功能一致性差, 缺少**最佳实践**的问题。它的设计理念是低侵入式的，核心思想是通过劫持 `vue-router` 的路由创建过程，代理部分常用方法，从而简化路由管理的复杂性。
 `vmo-router` 的一个重要特性是将常规页面模板“**池化**”，即从静态模式转变为动态调度模式。这意味着页面的加载和切换不再依赖于预先定义的静态配置，而是通过动态调度来实现。结合高效的缓存机制，vmo-router 确保用户在使用过程中几乎无感知，但整个操作流程却完全动态化，提升了开发效率和用户体验。
 通过这种设计，`vmo-router` 不仅简化了动态路由的配置，还提供了更加一致和系统化的路由管理实践，帮助开发者更好地应对复杂的`vue`框架下的前端路由需求。

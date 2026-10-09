@@ -1,5 +1,9 @@
 # vmo-router
 
+[English documentation](https://enmotion.github.io/vmo-router/en/) · [中文文档](https://enmotion.github.io/vmo-router/)
+
+The documentation site is available after the first GitHub Pages deployment. For local reading: `npm ci && npm run docs:dev`.
+
 `vmo-router` is a routing management tool that encapsulates `vue-router` to address complex and inconsistent **dynamic route configuration** issues and the lack of **best practices** in actual `vue` `SPA` development. Its design philosophy is low-invasive, with the core idea being to intercept the route creation process of `vue-router`, proxy some commonly used methods, thereby simplifying the complexity of route management.
 
 An important feature of `vmo-router` is to **pool** regular page templates, transforming them from a static mode to a dynamic dispatch mode. This means that the loading and switching of pages no longer rely on predefined static configurations but are achieved through dynamic dispatching. Combined with an efficient caching mechanism, `vmo-router` ensures that users are almost unaware of the entire operation process, which is fully dynamic, enhancing both development efficiency and user experience.
