@@ -87,21 +87,20 @@ function createRouter<META extends Record<string, any>>(
   }
 
   function removeRoute(name: NonNullable<RouteRecordName>): void {
-    // Vue Router also removes descendants; synchronize their persistence and KeepAlive names.
-    const removed = router.getRoutes().filter(record => record.name != null &&
-      router.resolve({ name: record.name }).matched.some(parent => parent.name === name)
-    )
-    removed.forEach(record => {
-      dynamicRoutes.delete(record.name!)
-      store?.removeCachedRoute(record.name!)
-      if (typeof record.name === 'string') store?.removeKeepAliveName(record.name)
-    })
+    // Let Vue Router traverse its actual matcher tree (including later-added children
+    // and aliases). Resolving route names here would require navigation parameters.
+    const previousNames = new Set(router.getRoutes().map(record => record.name))
     if (router.hasRoute(name)) router.removeRoute(name)
-    if (!removed.length) {
-      dynamicRoutes.delete(name)
-      store?.removeCachedRoute(name)
-      if (typeof name === 'string') store?.removeKeepAliveName(name)
-    }
+    const remainingNames = new Set(router.getRoutes().map(record => record.name))
+    const removedNames = new Set<NonNullable<RouteRecordName>>([name])
+    previousNames.forEach(previousName => {
+      if (previousName != null && !remainingNames.has(previousName)) removedNames.add(previousName)
+    })
+    removedNames.forEach(removedName => {
+      dynamicRoutes.delete(removedName)
+      store?.removeCachedRoute(removedName)
+      if (typeof removedName === 'string') store?.removeKeepAliveName(removedName)
+    })
   }
 
   function restore(reloads: VmoRouteToRaw<META>[], needClear: boolean): void {

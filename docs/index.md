@@ -6,8 +6,8 @@ hero:
   tagline: 在 Vue Router 上管理动态页面、刷新恢复与 KeepAlive，减少后台系统的重复配置。
   actions:
     - theme: brand
-      text: 快速开始
-      link: /guide/getting-started
+      text: 了解本库
+      link: /guide/why-vmo-router
     - theme: alt
       text: 查阅 API
       link: /api/router
@@ -30,3 +30,11 @@ features:
 第一次使用请阅读[快速开始](./guide/getting-started.md)。已接入旧版的项目请先阅读[迁移说明](./guide/migration.md)。
 
 本文档描述当前仓库实现。安装的 npm 版本可能尚未包含仓库中的修复，使用前请核对发布版本。
+
+## 推荐阅读顺序
+
+1. [为什么使用 vmo-router](./guide/why-vmo-router.md)：业务价值及与 Vue Router 的区别。
+2. [动态路由与模板](./guide/dynamic-routes.md)、[路由配置缓存](./guide/caching.md)、[KeepAlive](./guide/keep-alive.md)：理解配置、恢复与组件状态。
+3. [应用场景与完整流程](./guide/scenarios.md)：登录、页面切换、刷新恢复与退出。
+4. [快速开始](./guide/getting-started.md)与[离开保护](./guide/leave-protection.md)：实际接入。
+5. [Router API](./api/router.md)、[Store API](./api/store.md)、[辅助函数](./api/helpers.md)、[类型](./api/types.md)、[原生 API](./api/native.md)：逐项查询。

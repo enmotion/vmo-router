@@ -1,6 +1,31 @@
-# Persistence and KeepAlive
+# Route management and configuration caching
 
-Persistence saves route definitions for reload recovery. KeepAlive retains component instances and their input state. These are separate mechanisms.
+## Three separate kinds of state
+
+| State | Contents and owner | Lifecycle and purpose |
+| --- | --- | --- |
+| Dynamic registration list | A Map inside the router closure containing managed definitions | Memory only; tracks all registrations for cache writes and cleanup |
+| Route configuration cache | A Pinia definition array connected to storage by getter/setter | Saves definitions and params/query/hash for rebuilding routes after refresh |
+| KeepAlive name list | A Pinia array of component name strings | Filters Vue's include; Vue owns the cached component instances |
+
+Registrations and cached definitions must be separate. addRouter may register without navigating, canceled navigation may leave registrations, and single-cache mode only retains the latest written definition. clearRoutes can still remove all managed registrations.
+
+## Registration and recovery lifecycle
+
+```text
+Local template + dynamic definition
+  → Register in Vue Router and the dynamic list
+  → Successful navigation: update cache and call setter
+  → Refresh: configure getter/setter first
+  → createRouter reads cache and restores routes synchronously
+  → Initial navigation uses the current address
+```
+
+addRouter does not immediately persist. The internal afterEach updates params, query and hash after successful navigation to a managed named instance; static routes do not write dynamic definitions. reloadRoutes persists definitions during registration without navigation. Recovery during createRouter also writes definitions, so setters must tolerate repeated writes.
+
+Restoring routes does not open every cached page: the current address still determines initial navigation. Definitions do not save component code, form input or API data; applications must restore business state separately.
+
+Removal synchronizes the registration list, cached definitions and KeepAlive names using the names actually removed. It does not resolve locations or need required params. Storage callbacks are synchronous; applications must handle exceptions, and external storage failures do not guarantee rollback.
 
 ## Configure persistence
 
@@ -41,25 +66,5 @@ Single-cache mode affects persistence, not other routes already registered. Upda
 
 Persisting only a child definition cannot restore its dynamic parent tree. For nested dynamic routes, use multiple-cache mode or define the parent statically.
 
-## KeepAlive
 
-```ts
-router.afterEach((to, _from, failure) => {
-  if (!failure && to.meta.keepAlive && typeof to.name === 'string') {
-    store.insertKeepAliveName(to.name)
-  }
-})
-store.setKeepAliveMax(3)
-```
-
-```vue
-<router-view v-slot="{ Component }">
-  <keep-alive :include="store.getKeepAliveRouteNames">
-    <component :is="Component" />
-  </keep-alive>
-</router-view>
-```
-
-`keepAlive` is an application-defined meta convention: register the hook yourself. The name limit trims by insertion order. Reinserting an existing name does not move it, so this is not LRU. `setKeepAliveMax` takes effect on subsequent insertion rather than immediately trimming the list. Reloading discards component memory.
-
-`store.clearDynamicRouters()` clears persisted definitions only. Use `router.clearRoutes()` to remove registered routes as well.
+For component instance retention, read [KeepAlive page caching](./keep-alive.md).

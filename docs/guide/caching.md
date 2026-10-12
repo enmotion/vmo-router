@@ -1,6 +1,31 @@
-# 持久化与 KeepAlive
+# 路由管理与配置缓存
 
-这两种缓存解决不同问题：持久化保存路由配置，以便刷新后恢复；KeepAlive 保留组件实例及输入状态。
+## 三种状态各自保存什么
+
+| 状态 | 内容与所有者 | 生命周期与用途 |
+| --- | --- | --- |
+| 动态注册清单 dynamicRoutes | router 闭包中的 Map；本库注册的配置 | 只在内存中存在，跟踪全部动态注册，供导航写缓存与清理使用 |
+| 路由配置缓存 cachedRoutes | Pinia 中的配置数组；getter/setter 连接外部存储 | 保存定义及 params/query/hash，刷新后重新注册路由 |
+| KeepAlive 名称名单 | Pinia 中的字符串数组 | 交给 Vue 的 include 筛选组件；组件实例由 Vue 缓存 |
+
+注册清单和配置缓存必须分开：addRouter 注册后可能尚未导航，取消导航也可能留下注册记录，单缓存模式只保留最近写入的配置。clearRoutes 仍能清理这些已经注册的动态路由。
+
+## 从注册到刷新恢复
+
+```text
+本地模板 + 动态配置
+  → 注册到 Vue Router 和动态清单
+  → 成功导航：更新配置缓存，并调用 setter
+  → 页面刷新：应用先配置 getter/setter
+  → createRouter 读取缓存并同步恢复路由
+  → 按当前地址执行首次导航
+```
+
+addRouter 不立即写入持久化。成功导航到受管理的具名实例后，内部 afterEach 更新其 params、query、hash；静态路由不写动态缓存。reloadRoutes 则在注册时直接写入配置，无需先导航。createRouter 的恢复也会写入缓存，setter 应支持重复写入。
+
+恢复路由不等于重新打开每个缓存页面：当前地址仍决定首次导航目标。缓存不保存组件代码、表单输入或接口数据；刷新后的业务状态需由应用另行恢复。
+
+删除路由时，本库以实际删除的名称同步清理注册清单、配置缓存和 KeepAlive 名单；不用解析地址，所以不需要必填 params。存储回调只支持同步操作，异常应由应用处理，不保证外部存储失败时回滚。
 
 ## 持久化配置
 
@@ -41,25 +66,5 @@ store.setMutipleCatch(false) // 下一次写入仅保留一个配置
 
 单缓存模式下，如果当前页依赖动态父路由，持久化一个子路由不足以恢复整棵树。嵌套动态路由建议使用多缓存，或将父路由定义为静态路由。
 
-## KeepAlive
 
-```ts
-router.afterEach((to, _from, failure) => {
-  if (!failure && to.meta.keepAlive && typeof to.name === 'string') {
-    store.insertKeepAliveName(to.name)
-  }
-})
-store.setKeepAliveMax(3)
-```
-
-```vue
-<router-view v-slot="{ Component }">
-  <keep-alive :include="store.getKeepAliveRouteNames">
-    <component :is="Component" />
-  </keep-alive>
-</router-view>
-```
-
-`keepAlive` 是应用约定的 meta 字段，需要自己注册上述钩子。名单上限按插入顺序裁剪；再次插入已有名称不会移动顺序，因此不是 LRU。`setKeepAliveMax` 不立即裁剪现有名单，后续插入时生效。刷新不会保存组件内存。
-
-`store.clearDynamicRouters()` 仅清空持久化配置；若要同时删除真实路由，请调用 `router.clearRoutes()`。
+组件实例保留请继续阅读 [KeepAlive 页面缓存](./keep-alive.md)。

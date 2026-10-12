@@ -1,4 +1,4 @@
-# Types and helpers
+# Type reference
 
 ## Types
 
@@ -22,28 +22,38 @@ const to: VmoRouteToRaw<Meta> = {
 }
 ```
 
-## loadPageTemplateByImport
+## VmoRouteToRaw fields
 
-Accepts a module map and returns a template pool. The file's immediate parent folder becomes a PascalCase key: `sample-a` becomes `SampleA`. Supports default-export modules and eager/default glob imports. Duplicate normalized keys throw.
+| Field | Type and requirement | Purpose |
+| --- | --- | --- |
+| name | string/symbol; required for new registrations | Global route name; use strings for persistence |
+| params | Native named-navigation params, optional | Path placeholders; supply required values for navigation |
+| query / hash | Optional native navigation fields | Query and fragment, not template selection |
+| template | Required for new registrations; optional for existing names | Local template selection and overrides |
+| template.pageKey | Required string | Template key, such as Report |
+| template.parent | Optional string | Parent route name, not path |
+| template.route | Required `Omit<VmoRouteRecordRaw<META>, 'name'>` | Deep overrides; new registrations need nonempty path |
 
-## validateVmoRouterToRaw
+The type extends native relative navigation. Optional name/template in the type does not mean any object can register a route. New registrations must pass runtime checks; existing names only need normal navigation fields.
+
+## Template and menu types
+
+`VmoRouteRecordRaw<META>` is based on RouteRecordRaw with meta and component replaced. META constrains meta; component accepts RouteComponent or `Lazy<RouteComponent>`. Other record fields such as path, children, props, redirect and components remain.
+
+`VmoRouteMenuItemRaw<ITEM, META>` preserves business fields from ITEM while replacing to and children. Both are optional; children recursively uses the same generics. The type does not render menus, register routes or implement authorization.
 
 ```ts
-validateVmoRouterToRaw(to, templates) // boolean
+import type { VmoRouteMenuItemRaw } from 'vmo-router'
+type Menu = VmoRouteMenuItemRaw<{ title: string }, { keepAlive?: boolean }>
+const menu: Menu = { title: 'Reports', children: [{
+  title: 'Monthly', to: { name: 'report-monthly', params: { id: '2026-10' } }
+}] }
 ```
 
-Checks the name, template override path and template existence. It does not check name/path collisions with a router, nor replace complete validation of backend configuration.
+## Instance, guard and store types
 
-## addRouterWithVmoRouterToRaw
+`VmoProxyRouter<META>` retains native Router fields, replaces extended methods and adds $instance: Router. VmoNavigationGuard receives native RouteLocationNormalized to/from and returns NavigationGuardReturn or its Promise, without next.
 
-```ts
-addRouterWithVmoRouterToRaw(to, templates, routerInstance?) // void
-```
+`RouterStore.CacherMethods<RouteToRaw>` defines getter: () => RouteToRaw[] and setter: (routes: RouteToRaw[]) => void. RouterStore.State describes state; RouterStore.PiniaStore is the useRouterStore return type; RouterStore.ExtractRouteInfoType extracts the definition's meta generic. Callbacks are synchronous.
 
-Merges configuration and optionally registers it on the native instance. The name comes from `to.name`. Existing parents cause leading path slashes to be removed; otherwise registration is at the root. Throws when there is no usable component, named view, redirect or children. Does not update the store or return a generated record. Prefer the proxy's `addRouter` for normal application use.
-
-## Vue Router re-exports
-
-`useRoute`, `createMemoryHistory`, `createWebHashHistory`, `createWebHistory`, `createRouterMatcher`, `isNavigationFailure`, `loadRouteLocation`, `onBeforeRouteLeave`, `onBeforeRouteUpdate`, `useLink`, `parseQuery` and `stringifyQuery`.
-
-See [Leave protection](../guide/leave-protection.md) for `usePreventBrowserBeforeunloadBehavior`.
+Types only provide compile-time checks; validate runtime inputs. See [helpers](./helpers.md) and [native APIs](./native.md).

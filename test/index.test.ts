@@ -108,6 +108,78 @@ describe('router integration', () => {
     expect(store.getCachedRoutes).toEqual([])
     router.removeRoute('unknown')
   })
+  it.each(['clear', 'reload', 'remove'] as const)(
+    '%s cleans parameterized descendants and caches without resolving unrelated routes', async method => {
+      const store = useRouterStore()
+      let persisted: VmoRouteToRaw<Record<string, any>>[] = []
+      const setter = vi.fn((routes: typeof persisted) => { persisted = [...routes] })
+      store.setCacheMethods({ getter: () => persisted, setter })
+      const router = createRouter({ history: createMemoryHistory(), routes: [
+        { path: '/login', name: 'login', component },
+        { path: '/project-home/:id/:name', name: 'project-home-pg', component }
+      ] }, pool, store)
+      const root = to('root')
+      root.template!.route.path = '/root/:id'
+      const child = to('child', 'root')
+      const leaf = to('leaf', 'child')
+      leaf.template!.route.path = 'leaf/:name'
+      // Start from persisted definitions, as during application startup.
+      await router.reloadRoutes([leaf, child, root], false)
+      store.setKeepAliveName(['root', 'child', 'leaf', 'login', 'project-home-pg'])
+      const resolve = vi.spyOn(router.$instance, 'resolve')
+      if (method === 'clear') expect(() => router.clearRoutes()).not.toThrow()
+      if (method === 'remove') expect(() => router.removeRoute('root')).not.toThrow()
+      if (method === 'reload') await expect(router.reloadRoutes([to('replacement')])).resolves.toBeUndefined()
+      expect(resolve).not.toHaveBeenCalled()
+      for (const name of ['root', 'child', 'leaf']) expect(router.hasRoute(name)).toBe(false)
+      const expected = method === 'reload' ? [to('replacement')] : []
+      expect(store.getCachedRoutes).toEqual(expected)
+      expect(persisted).toEqual(expected)
+      expect(setter).toHaveBeenCalled()
+      expect(store.getKeepAliveRouteNames).toEqual(['login', 'project-home-pg'])
+      expect(router.hasRoute('project-home-pg')).toBe(true)
+      expect(router.hasRoute('login')).toBe(true)
+      // Removed definitions must also disappear from the in-memory dynamic registry.
+      router.addRouter(root)
+      router.clearRoutes()
+      expect(store.getCachedRoutes).toEqual([])
+      await router.push('/login')
+      expect(router.currentRoute.value.name).toBe('login')
+      await router.push('/project-home/42/example')
+      expect(router.currentRoute.value.params).toEqual({ id: '42', name: 'example' })
+    }
+  )
+  it('removes template descendants through unnamed records, aliases and native additions', async () => {
+    const store = useRouterStore()
+    const symbolName = Symbol('native-leaf')
+    const nestedPool = { Nested: {
+      path: '/template', component,
+      children: [{ path: 'group', component, children: [
+        { path: ':name', name: 'template-leaf', alias: 'alias/:name', component }
+      ] }]
+    } }
+    const nestedRouter = createRouter({ history: createMemoryHistory(), routes: [
+      { path: '/login', name: 'login', component }
+    ] }, nestedPool, store)
+    const root: VmoRouteToRaw<Record<string, any>> = {
+      name: 'root', template: { pageKey: 'Nested', route: { path: '/root/:id', alias: '/alias/:id' } }
+    }
+    await nestedRouter.reloadRoutes([root])
+    nestedRouter.$instance.addRoute('root', { path: 'native/:name', name: symbolName, component })
+    store.insertCachedRoute({ name: 'template-leaf' })
+    store.insertCachedRoute({ name: symbolName })
+    store.setKeepAliveName(['root', 'template-leaf', 'login'])
+    expect(() => nestedRouter.removeRoute('root')).not.toThrow()
+    expect(nestedRouter.getRoutes().map(record => record.name)).toEqual(['login'])
+    expect(store.getCachedRoutes).toEqual([])
+    expect(store.getKeepAliveRouteNames).toEqual(['login'])
+    // Missing names still clean stale persistence and KeepAlive entries.
+    store.insertCachedRoute({ name: 'unknown' })
+    store.insertKeepAliveName('unknown')
+    nestedRouter.removeRoute('unknown')
+    expect(store.getCachedRoutes).toEqual([])
+    expect(store.getKeepAliveRouteNames).toEqual(['login'])
+  })
   it('validates a reload before changing existing routes and supports append', async () => {
     const { router, store } = setup()
     await router.push(to('a'))

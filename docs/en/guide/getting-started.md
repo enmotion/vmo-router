@@ -2,6 +2,9 @@
 
 vmo-router extends Vue Router with dynamic route management for Vue 3 applications that load pages from backend configuration.
 
+
+Start with a static home page and one report registered on demand. The KeepAlive integration is included but its hook and wrapper can initially be omitted. Read [why vmo-router](./why-vmo-router.md) for the design rationale, then extend this example with login registration, persistence and logout in the [complete workflow](./scenarios.md).
+
 ## Install
 
 ```sh
